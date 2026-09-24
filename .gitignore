@@ -40,7 +40,8 @@ src/frontend/dist/
 
 # 二进制与压缩产物
 *.exe
-*.tar.gz
 *.zip
 *.key
 *.pem
+*.tar.gz
+!deploy-pkg/nac-platform-deploy.tar.gz

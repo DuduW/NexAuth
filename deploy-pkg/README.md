@@ -10,32 +10,31 @@
 ## 1. 包内容
 
 ```
-nac-platform-deploy-v16.tar.gz
-└─ deploy-pkg/
-   ├─ install.sh          # 一键安装脚本 v1.6（bash，含 20+ 处失败防线 + 19 项自检）
-   ├─ README.md           # 本说明
-   └─ payload/            # 部署物料（源机实测收集，软链已实体化）
-      ├─ freeradius/      # FreeRADIUS 配置（263 文件）
-      │  ├─ radiusd.conf      #   主配置
-      │  ├─ clients.conf      #   NAS 客户端定义
-      │  ├─ dictionary        #   本地扩展字典（含 Auth-Method 102 自定义属性）
-      │  ├─ sites-enabled/    #   default + inner-tunnel（实体文件）
-      │  ├─ mods-enabled/     #   sql/eap/expiration/logintime 等（实体文件）
-      │  ├─ mods-config/      #   全量模块配置（含 sql/main/mysql 查询）
-      │  ├─ policy.d/         #   策略（含 check-eap-tls 等）
-      │  └─ certs/            #   仅自签骨架（Makefile/bootstrap/*.cnf/dh）——安装时全新生成证书
-      ├─ opt/             # 应用代码
-      │  ├─ radius-admin/     #   FastAPI 后端（23 路由文件 / 161 端点）
-      │  ├─ portal_server.py  #   华为 Portal 协议服务（:8080 / UDP 50100）
-      │  ├─ detail_sync.py    #   记账入库（cron 每分钟）
-      │  ├─ vpn_visit_collector.py / health_check.sh
-      │  └─ zt_*.py           #   零信任遗留采集（cron 可选）
-      ├─ systemd/         # radius-admin.service / portal-server.service
-      ├─ nginx/           # nginx 站点配置（:80，/api/ 反代 :8000）
-      ├─ db/
-      │  ├─ schema.sql        # 66 张表结构（含 DROP TABLE，重装即清库）
-      │  └─ seed.sql          # 最小种子（5 条：admin 账号/admin 组/group-guest/本机测试 NAS）
-      └─ frontend/admin-spa/  # 前端构建产物（压缩后约 3MB）
+nac-platform-deploy.tar.gz
+├─ install.sh            # 一键安装脚本 v1.7（bash，含 20+ 处失败防线 + 19 项自检）
+├─ README.md             # 本说明
+└─ payload/              # 部署物料（软链已实体化，证书仅自签骨架）
+   ├─ freeradius/        # FreeRADIUS 配置（263 文件）
+   │  ├─ radiusd.conf        #   主配置
+   │  ├─ clients.conf        #   NAS 客户端定义
+   │  ├─ dictionary          #   本地扩展字典（含 Auth-Method 102 自定义属性）
+   │  ├─ sites-enabled/      #   default + inner-tunnel（实体文件）
+   │  ├─ mods-enabled/       #   sql/eap/expiration/logintime 等（实体文件）
+   │  ├─ mods-config/        #   全量模块配置（含 sql/main/mysql 查询）
+   │  ├─ policy.d/           #   策略（含 check-eap-tls 等）
+   │  └─ certs/              #   仅自签骨架（Makefile/bootstrap/*.cnf/dh）——安装时全新生成证书
+   ├─ opt/               # 应用代码
+   │  ├─ radius-admin/       #   FastAPI 后端（23 路由文件 / 161 端点）
+   │  ├─ portal_server.py    #   华为 Portal 协议服务（:8080 / UDP 50100）
+   │  ├─ detail_sync.py      #   记账入库（cron 每分钟）
+   │  ├─ vpn_visit_collector.py / health_check.sh
+   │  └─ zt_*.py             #   零信任遗留采集（cron 可选）
+   ├─ systemd/           # radius-admin.service / portal-server.service
+   ├─ nginx/             # nginx 站点配置（:80，/api/ 反代 :8000）
+   ├─ db/
+   │  ├─ schema.sql          # 66 张表结构（含 DROP TABLE，重装即清库）
+   │  └─ seed.sql            # 最小种子（5 条：admin 账号/admin 组/group-guest/本机测试 NAS）
+   └─ frontend/admin-spa/    # 前端构建产物（压缩后约 3MB）
 ```
 
 ## 2. 部署要求
@@ -53,7 +52,7 @@ nac-platform-deploy-v16.tar.gz
 
 ```bash
 # 1. 解压（任意目录）—— 包内自带顶层 deploy-pkg/ 目录
-tar xzf nac-platform-deploy-v15.tar.gz
+tar xzf nac-platform-deploy.tar.gz
 cd deploy-pkg
 
 # 2. （可选）改配置区：数据库名/账号密码/共享密钥
