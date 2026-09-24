@@ -45,3 +45,5 @@ src/frontend/dist/
 *.pem
 *.tar.gz
 !deploy-pkg/nac-platform-deploy.tar.gz
+bin/
+gotest/
