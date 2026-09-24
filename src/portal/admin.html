@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+
+<html><head>
+
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title id="pageTitle">企业网络管理平台</title>
+
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;color:#1f2430;background:#eef1f6}
+
+
+
+:root{--blue:#1450C8;--green:#2BBD7E;--red:#c23c34;--orange:#E0742A;--dark:#1f2430;--gray:#6b7488;--muted:#8b94a6;--border:#e2e7f0;--bg-light:#fafbfd;--bg-title:#f7f9fc}
+
+
+
+.container{display:flex;min-height:100vh}
+
+.sidebar{width:210px;flex-shrink:0;background:var(--bg-light);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+
+.sidebar h3{font-size:13px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin:16px 0 8px 4px}
+
+.sidebar h3:first-child{margin-top:0}
+
+.sidebar-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:13px;cursor:pointer;color:var(--gray);margin-bottom:2px;transition:all .15s}
+
+.sidebar-item:hover{background:#eef2fb;color:var(--blue)}
+
+.sidebar-item.active{background:#eef2fb;color:var(--blue);font-weight:600}
+
+.sidebar-item .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+.sidebar-item.active .dot{background:var(--blue)}
+
+.sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--border)}
+
+.sidebar-user{display:flex;align-items:center;gap:9px;padding:10px;border-radius:10px;background:#fff;border:1px solid var(--border)}
+
+.sidebar-user .avatar{width:30px;height:30px;border-radius:50%;background:#dfe5ef;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#5b647a;flex-shrink:0}
+
+.sidebar-user .name{font-size:12px;font-weight:600}.sidebar-user .role{font-size:11px;color:var(--muted)}
+
+
+
+.main{flex:1;padding:28px 32px;min-width:0}
+
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+
+.page-header h1{font-size:22px;font-weight:700}
+
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;transition:transform .15s,box-shadow .15s}
+
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(20,50,110,.08)}
+
+.stat-card .label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+.stat-card .value{font-size:28px;font-weight:700;margin-top:6px}
+
+.stat-card .sub{font-size:12px;color:var(--gray);margin-top:4px}
+
+
+
+.tab-bar{display:flex;gap:6px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:5px;margin-bottom:18px}
+
+.tab-btn{padding:7px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--gray);background:transparent;transition:all .15s}
+
+.tab-btn:hover{color:var(--blue)}
+
+.tab-btn.active{background:#eef2fb;color:var(--blue);font-weight:600}
+
+
+
+.panel{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 4px 16px rgba(20,50,110,.06);overflow:hidden;margin-bottom:20px}
+
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--bg-title);border-bottom:1px solid var(--border)}
+
+.panel-header h4{font-size:14px;font-weight:600}
+
+.panel-body{padding:16px 20px}
+
+
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+
+th{text-align:left;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:10px 14px;background:var(--bg-title);border-bottom:1px solid var(--border)}
+
+td{padding:9px 14px;border-bottom:1px solid #f1f3f8;vertical-align:middle}
+
+tr:hover td{background:#f8faff}
+
+td code{background:#f0f2f8;padding:2px 6px;border-radius:4px;font-size:12px}
+
+
+
+.badge{padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;display:inline-block}
+
+.badge-success{background:#e4f7ee;color:#188a5b}
+
+.badge-warning{background:#fff1e0;color:#b45e13}
+
+.badge-danger{background:#fdeceb;color:var(--red)}
+
+.badge-default{background:#eef1f6;color:var(--gray)}
+
+.badge-blue{background:#eef2fb;color:var(--blue)}
+
+
+
+.btn{padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#12328c}
+
+.btn-danger{background:#fff;color:var(--red);border:1px solid #f0cdca}.btn-danger:hover{background:#fef2f2}
+
+.btn-outline{background:#fff;color:var(--blue);border:1px solid #b9cef1}.btn-outline:hover{background:#f0f4ff}
+
+.btn-sm{padding:4px 10px;font-size:11px}
+
+
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+@media(max-width:900px){.grid-2{grid-template-columns:1fr}.sidebar{width:180px}.main{padding:16px}}
+
+
+
+.input-wrap{display:flex;gap:8px;margin-bottom:12px}
+
+.input-wrap input,.input-wrap select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;color:var(--dark);outline:none}
+
+.input-wrap input:focus,.input-wrap select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(20,80,200,.08)}
+
+
+
+.toast{position:fixed;bottom:24px;right:24px;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;color:#fff;z-index:9999;animation:fadeIn .2s;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+
+.toast-success{background:var(--green)}.toast-error{background:var(--red)}.toast-info{background:var(--blue)}
+
+
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(15,24,48,.4);z-index:9998;display:flex;align-items:center;justify-content:center}
+
+.modal-box{background:#fff;border-radius:16px;padding:28px;min-width:320px;max-width:420px;box-shadow:0 18px 44px rgba(20,50,110,.22)}
+
+.modal-box h5{font-size:16px;margin-bottom:12px}
+
+.modal-box canvas{display:block;margin:12px auto}
+
+
+
+.empty{text-align:center;color:var(--muted);padding:32px 0;font-size:13px}
+
+.search-box{display:flex;gap:8px;align-items:center}
+
+.search-box input{width:180px}
+
+
+/* Dark theme */
+body.dark { background: #0f1419; color: #d0d5dd; }
+body.dark .sidebar { background: #1a1f28; border-color: #2a3340; }
+body.dark .sidebar-item { color: #8899aa; }
+body.dark .sidebar-item:hover { background: #1e2a3a; }
+body.dark .sidebar-item.active { background: #162540; color: #6BA6FF; }
+body.dark .sidebar-item.active .dot { background: #6BA6FF; }
+body.dark .sidebar h3 { color: #667788; }
+body.dark .sidebar-footer { border-color: #2a3340; }
+body.dark .sidebar-user { background: #1a1f28; border-color: #2a3340; }
+body.dark .sidebar-user .avatar { background: #2a3340; color: #8899aa; }
+body.dark .main { background: #0f1419; }
+body.dark .panel, body.dark .stat-card { background: #1a1f28; border-color: #2a3340; }
+body.dark .panel-header { background: #151a24; border-color: #2a3340; }
+body.dark th { background: #151a24; color: #667788; border-color: #2a3340; }
+body.dark td { border-color: #222a36; }
+body.dark tr:hover td { background: #1a2333; }
+body.dark td code { background: #222a36; color: #a0b0cc; }
+body.dark .tab-bar { background: #1a1f28; border-color: #2a3340; }
+body.dark .tab-btn { color: #8899aa; }
+body.dark .tab-btn:hover { color: #6BA6FF; }
+body.dark .tab-btn.active { background: #162540; color: #6BA6FF; }
+body.dark .badge-default { background: #222a36; color: #8899aa; }
+body.dark .badge-blue { background: #162540; color: #6BA6FF; }
+body.dark .input-wrap input, body.dark .input-wrap select { background: #1a1f28; border-color: #2a3340; color: #d0d5dd; }
+body.dark .modal-overlay { background: rgba(0,0,0,.7); }
+body.dark .modal-box { background: #1a1f28; }
+body.dark .page-header h1 { color: #e5e9f0; }
+body.dark .stat-card .value { color: #e5e9f0; }
+body.dark .empty { color: #667788; }
+body.dark h4 { color: #c0cad8; }
+body.dark { --blue: #6BA6FF; --dark: #e5e9f0; --gray: #8899aa; --muted: #667788; --border: #2a3340; --bg-light: #151a24; --bg-title: #151a24; }
+
+/* White theme (default) */
+body.light { background: #eef1f6; color: #1f2430; }
+body.light { --blue: #1450C8; --dark: #1f2430; --gray: #6b7488; --muted: #8b94a6; --border: #e2e7f0; --bg-light: #fafbfd; --bg-title: #f7f9fc; }
+
+</style>
+
+</head><body>
+
+<div class="container">
+
+
+
+<!-- Sidebar -->
+
+<aside class="sidebar">
+
+  <span style="font-size:16px;font-weight:700;color:var(--dark);padding:4px 12px 12px">企业网络管理</span>
+
+
+
+  <h3>首页</h3>
+
+  <div class="sidebar-item active" data-key="dashboard" onclick="switchPage('dashboard',this)"><span class="dot" style="background:#2BBD7E"></span>首页概览</div>
+
+
+
+  <h3>用户管理</h3>
+
+  <div class="sidebar-item" data-key="users" onclick="switchPage('users',this)"><span class="dot" style="background:#1450C8"></span>用户列表</div>
+
+  <div class="sidebar-item" data-key="groups" onclick="switchPage('groups',this)"><span class="dot" style="background:#6BA6FF"></span>用户组管理</div>
+
+  <h3>准入</h3>
+
+  <div class="sidebar-item" data-key="online" onclick="switchPage('online',this)"><span class="dot" style="background:#2BBD7E"></span>在线设备</div>
+
+  <div class="sidebar-item" data-key="macpass" onclick="switchPage('macpass',this)"><span class="dot" style="background:#6BA6FF"></span>MAC 免认证</div>
+
+  <div class="sidebar-item" data-key="qos" onclick="switchPage('qos',this)"><span class="dot" style="background:#E0742A"></span>QoS 策略</div>
+
+  <div class="sidebar-item" data-key="authlog" onclick="switchPage('authlog',this)"><span class="dot" style="background:#8b94a6"></span>认证日志</div>
+
+
+
+  <h3>VPN 管理</h3>
+
+  <div class="sidebar-item" data-key="vpn" onclick="switchPage('vpn',this)"><span class="dot" style="background:#188a5b"></span>VPN 节点</div>
+
+  <div class="sidebar-item" data-key="vpnlog" onclick="switchPage('vpnlog',this)"><span class="dot" style="background:#8b94a6"></span>连接日志</div>
+  
+
+  
+
+  
+
+
+
+    <h3 data-key="nav_settings">系统设置</h3>
+
+  <div class="sidebar-item" data-key="settings" onclick="switchPage('settings',this)"><span class="dot" style="background:#8b94a6"></span>系统设置</div>
+
+  <div class="sidebar-footer">
+
+    <div class="sidebar-user">
+
+      <div class="avatar">管</div>
+
+      <div><div class="name">管理员</div><div class="role">超级管理员</div></div>
+
+    </div>
+
+  </div>
+
+</aside>
+
+
+
+<!-- Main content -->
+
+<main class="main" id="mainContent"><div style="padding:40px;text-align:center;color:var(--muted)">加载中…</div></main>
+
+
+
+</div>
+
+<div id="toast" class="toast" style="display:none"></div>
+
+<div id="qrModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeQR()">
+
+  <div class="modal-box">
+
+    <h5>扫描绑定 TOTP</h5>
+
+    <canvas id="qrCanvas" width="200" height="200" style="margin:16px auto;display:block"></canvas>
+
+    <div style="text-align:center;margin-top:8px"><strong id="qrUser"></strong></div>
+
+    <div style="text-align:center;color:var(--muted);font-size:11px;word-break:break-all;margin:6px 0" id="qrSecret"></div>
+
+    <p style="text-align:center;color:var(--gray);font-size:12px;margin-top:6px">使用 Google Authenticator 扫码</p>
+
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="closeQR()">关闭</button>
+
+  </div>
+
+</div>
+
+
+
+<script src="qrious.min.js"></script>
+
+<script>
+
+// ── Constants ──
+
+const API = '/manage/api.php';
+
+
+
+
+// Language
+const L = {
+  zh: {dashboard:'首页概览',users:'用户列表',groups:'用户组管理',online:'在线设备',macpass:'MAC 免认证',qos:'QoS 策略',authlog:'认证日志',
+       vpn:'VPN 节点',vpnlog:'连接日志',settings:'系统设置',onlineTitle:'在线设备',macTitle:'MAC 免认证',qosTitle:'QoS 带宽策略',
+       authlogTitle:'认证日志',userTitle:'用户管理',groupTitle:'用户组管理',vpnTitle:'VPN 节点管理',vpnlogTitle:'连接日志',
+       settingsTitle:'系统设置',createUser:'创建用户',createGroup:'创建分组',existing:'现有',people:'人',groups_unit:'个组',
+       userList:'用户列表',groupList:'现有分组',searchUser:'搜索用户名…',searchGroup:'搜索组名…',
+       nav_home:'首页',nav_users:'用户管理',nav_nac:'准入',nav_vpn:'VPN 管理',nav_settings:'系统设置',site_title:'企业网络管理'},
+  en: {dashboard:'Dashboard',users:'Users',groups:'Groups',online:'Online',macpass:'MAC Bypass',qos:'QoS',authlog:'Auth Log',
+       vpn:'VPN Nodes',vpnlog:'Conn Logs',settings:'Settings',onlineTitle:'Online Devices',macTitle:'MAC Bypass',qosTitle:'QoS Policies',
+       authlogTitle:'Auth Log',userTitle:'User Management',groupTitle:'Group Management',vpnTitle:'VPN Nodes',vpnlogTitle:'Conn Logging',
+       settingsTitle:'Settings',createUser:'Create User',createGroup:'Create Group',existing:'Existing',people:'users',groups_unit:'groups',
+       userList:'User List',groupList:'Groups',searchUser:'Search user...',searchGroup:'Search group...',
+       nav_home:'Home',nav_users:'Users',nav_nac:'NAC',nav_vpn:'VPN',nav_settings:'Settings',site_title:'Network Mgmt'}
+};
+let lang = localStorage.getItem('lang') || 'zh';
+function t(key) { return (L[lang]||L.zh)[key] || key; }
+
+// ── State ──
+
+let currentPage = 'dashboard';
+
+let totpStatus = {};
+
+let refreshTimer = null;
+
+
+
+// ── Navigation ──
+
+function switchPage(page, el) {
+
+  currentPage = page;
+
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+
+  if(el) el.classList.add('active');
+
+  render();
+
+  loadPage(page);
+
+}
+
+
+
+// ── UI ──
+
+function $(id) { return document.getElementById(id); }
+
+function toast(msg, type='info') {
+
+  const t = $('toast'); t.textContent = msg; t.className = 'toast toast-'+type; t.style.display='block';
+
+  setTimeout(()=>t.style.display='none', 2500);
+
+}
+
+
+
+function badge(text, type) { return `<span class="badge badge-${type}">${text}</span>`; }
+
+
+
+async function api(action, data=null) {
+
+  try {
+
+    let url = API + '?action=' + action;
+
+    let opts = { method: data ? 'POST' : 'GET', headers: {} };
+
+    if(data) { opts.body = new URLSearchParams(data); opts.headers['Content-Type']='application/x-www-form-urlencoded'; }
+
+    let r = await fetch(url, opts);
+
+    return await r.json();
+
+  } catch(e) { return null; }
+
+}
+
+
+
+// ── Stats ──
+
+async function loadStats(d) {
+
+  let res = await api('dashboard');
+
+  d.stats = res || { online: '-', today_auth: '-', mac_bypass: '-', traffic: '-' };
+
+  d.online_count = d.stats.online;
+
+}
+
+
+
+// ── Render ──
+
+async function render() {
+
+  let m = $('mainContent');
+
+  let p = currentPage;
+
+
+
+  // Build data holder
+
+  let d = { stats: {}, online_count: '-' };
+
+
+
+  // Always load stats for dashboard
+
+  await loadStats(d);
+
+
+
+  // Navigation components
+
+  let header = '';
+
+  let content = '';
+
+
+
+  if (p === 'dashboard') {
+
+    header = `<div class="page-header"><h1>首页概览</h1><div style="font-size:12px;color:var(--muted)">${new Date().toLocaleString('zh-CN')}</div></div>`;
+
+
+
+    // Stat cards
+
+    content = `<div class="stat-cards">
+
+      <div class="stat-card"><div class="label">在线用户</div><div class="value" style="color:var(--blue)">${d.stats.online}</div><div class="sub">当前活跃连接</div></div>
+
+      <div class="stat-card"><div class="label">今日认证</div><div class="value" style="color:var(--green)">${d.stats.today_auth}</div><div class="sub">成功+失败认证次数</div></div>
+
+      <div class="stat-card"><div class="label" data-key="macpass">MAC 免认证</div><div class="value" style="color:var(--orange)">${d.stats.mac_bypass}</div><div class="sub">有效设备免认证</div></div>
+
+      <div class="stat-card"><div class="label">当前流量</div><div class="value" style="color:var(--red)">${d.stats.traffic} GB</div><div class="sub">实时总流量</div></div>
+
+    </div>
+
+
+
+    <div class="tab-bar">
+
+      <button class="tab-btn ${d.dashTab!=='online'?'active':''}" onclick="d.dashTab='';render()">准入</button>
+
+      <button class="tab-btn ${d.dashTab==='online'?'active':''}" onclick="d.dashTab='online';render()">VPN 管理</button>
+
+    </div>`;
+
+
+
+    if (!d.dashTab || d.dashTab !== 'online') {
+
+      // RADIUS section
+
+      let onData = await api('online');
+
+      let macData = await api('macs');
+
+      content += `<div class="grid-2">
+
+        <div class="panel">
+
+          <div class="panel-header"><h4>实时在线设备</h4><span class="badge badge-blue">${d.stats.online} 在线</span></div>
+
+          <div class="panel-body">${
+
+            onData && onData.length ? '<table><tr><th>用户名</th><th>IP</th><th>MAC</th><th>在线时长</th><th>流量</th></tr>' +
+
+            onData.slice(0,8).map(o => `<tr><td><strong>${o.username}</strong></td><td>${o.ip||'-'}</td><td><code>${(o.mac||'-').substring(0,17)}</code></td><td>${fmtDur(o.acctsessiontime)}</td><td>↑${o.up_mb}MB ↓${o.down_mb}MB</td></tr>`).join('') + '</tbody></table>'
+
+            : '<div class="empty">暂无在线设备</div>'
+
+          }</div>
+
+        </div>
+
+        <div class="panel">
+
+          <div class="panel-header"><h4>MAC 免认证</h4><span class="badge badge-success">${d.stats.mac_bypass} 条</span></div>
+
+          <div class="panel-body">${
+
+            macData && macData.length ? '<table><tr><th>MAC 地址</th><th>用户</th><th>状态</th><th>操作</th></tr>' +
+
+            macData.slice(0,8).map(m => `<tr><td><code>${m.mac}</code></td><td>${m.username}</td><td>${badge(m.status==='valid'?'有效':'过期', m.status==='valid'?'success':'default')}</td>
+
+              <td><button class="btn btn-danger btn-sm" onclick="delMac('${m.mac}')">移除</button></td></tr>`).join('') + '</tbody></table>'
+
+            : '<div class="empty">暂无 MAC 免认证</div>'
+
+          }</div>
+
+        </div>
+
+      </div>`;
+
+    } else {
+
+      // VPN section
+
+      content += `<div class="grid-2">
+
+        <div class="panel">
+
+          <div class="panel-header"><h4>VPN 连接状态</h4><span class="badge badge-blue" id="vpnCount">-</span></div>
+
+          <div class="panel-body" id="vpnList"><div class="empty">加载中…</div></div>
+
+        </div>
+
+        <div class="panel">
+
+          <div class="panel-header"><h4>VPN 事件日志</h4></div>
+
+          <div class="panel-body" id="vpnLog"><div class="empty">加载中…</div></div>
+
+        </div>
+
+      </div>`;
+
+    }
+
+
+
+    // Auth log at bottom
+
+    let logData = await api('authlog');
+
+    content += `<div class="panel" style="margin-top:18px">
+
+      <div class="panel-header"><h4>最近认证记录</h4><span class="badge badge-default">最近50条</span></div>
+
+      <div class="panel-body">${
+
+        logData && logData.length ? '<table><tr><th>用户名</th><th>结果</th><th>时间</th></tr>' +
+
+        logData.slice(0,10).map(l => `<tr><td><code>${l.username}</code></td><td>${badge(l.reply, l.reply==='Access-Accept'?'success':'danger')}</td><td>${l.authdate||'-'}</td></tr>`).join('') + '</tbody></table>'
+
+        : '<div class="empty">暂无记录</div>'
+
+      }</div></div>`;
+
+
+
+  } else if (p === 'users') {
+
+    header = `<div class="page-header"><h1>用户管理</h1></div>`;
+
+    let data = await api('users');
+
+    await loadTotp();
+
+    content = `<div class="panel">
+
+      <div class="panel-header"><h4>创建用户</h4></div>
+
+      <div class="panel-body">
+
+        <div class="input-wrap">
+
+          <input id="nuName" placeholder="用户名" onkeyup="if(event.key==='Enter')createUser()">
+
+          <input id="nuPass" placeholder="密码" onkeyup="if(event.key==='Enter')createUser()">
+
+          <select id="nuGroup"><option>group-guest</option></select>
+
+          <button class="btn btn-primary" onclick="createUser()">创建</button>
+
+        </div>
+
+      </div></div>
+
+    <div class="panel" style="margin-top:14px">
+
+      <div class="panel-header"><h4>用户列表</h4><span class="badge badge-blue">${data?data.length:0} 人</span><input id="userSearch" placeholder="搜索用户名…" style="margin-left:12px;padding:5px 10px;border:1px solid #e2e7f0;border-radius:6px;font-size:12px;width:160px" oninput="filterUsers()"></div>
+
+      <div class="panel-body">${
+
+        data && data.length ? '<table id="usersTable"><thead><tr><th>用户名</th><th>分组</th><th>双因素</th><th>MAC 免认证</th><th>操作</th></tr></thead><tbody>' +
+
+        data.map(u => `<tr>
+
+          <td><strong>${u.username}</strong></td>
+
+          <td>${badge(u.groupname||'-', 'default')}</td>
+
+          <td>${totpStatus[u.username]&&totpStatus[u.username].enabled ? badge('TOTP','success') : badge('关闭','default')}</td>
+
+          <td>${u.mac_expiry ? badge('至 '+u.mac_expiry.split(' ')[0], 'success') : '<span style="font-size:12px;color:var(--muted)">-</span>'}</td>
+
+          <td>
+
+            ${(!totpStatus[u.username]||!totpStatus[u.username].enabled) ? `<button class="btn btn-outline btn-sm" onclick="enableTotp('${u.username}')">启用TOTP</button>` : `<button class="btn btn-outline btn-sm" onclick="resetTotp('${u.username}')">重置TOTP</button>`}
+
+            <button class="btn btn-danger btn-sm" onclick="delUser('${u.username}')" style="margin-left:4px">删除</button>
+
+          </td></tr>`).join('') + '</tbody></table>'
+
+        : '<div class="empty">暂无用户</div>'
+
+      }</div></div>`;
+
+  } else if (p === 'online') {
+
+    header = `<div class="page-header"><h1>在线设备</h1></div>`;
+
+    let data = await api('online');
+
+    content = `<div class="panel">
+
+      <div class="panel-header"><h4>实时在线</h4><span class="badge badge-green">${data?data.length:0} 在线</span></div>
+
+      <div class="panel-body">${
+
+        data && data.length ? '<table><tr><th>用户名</th><th>IP 地址</th><th>MAC 地址</th><th>上线时间</th><th>上行</th><th>下行</th><th>会话时长</th></tr>' +
+
+        data.map(o => `<tr><td><strong>${o.username}</strong></td><td>${o.ip||'-'}</td><td><code>${(o.mac||'-').substring(0,17)}</code></td><td>${o.acctstarttime||'-'}</td><td>${o.up_mb} MB</td><td>${o.down_mb} MB</td><td>${fmtDur(o.acctsessiontime)}</td></tr>`).join('') + '</tbody></table>'
+
+        : '<div class="empty">暂无在线设备</div>'
+
+      }</div></div>`;
+
+  } else if (p === 'macpass') {
+
+    header = `<div class="page-header"><h1>MAC 免认证</h1></div>`;
+
+    let data = await api('macs');
+
+    content = `<div class="panel">
+
+      <div class="panel-header"><h4>免认证设备</h4><span class="badge badge-success">${data?data.length:0} 条</span></div>
+
+      <div class="panel-body">${
+
+        data && data.length ? '<table><tr><th>MAC 地址</th><th>关联用户</th><th>注册时间</th><th>过期时间</th><th>状态</th><th>操作</th></tr>' +
+
+        data.map(m => `<tr><td><code>${m.mac}</code></td><td>${m.username}</td><td>${(m.created_at||'').substring(0,16)}</td><td>${(m.expires_at||'').substring(0,16)}</td><td>${badge(m.status==='valid'?'有效':'过期', m.status==='valid'?'success':'default')}</td>
+
+          <td><button class="btn btn-danger btn-sm" onclick="delMac('${m.mac}')">移除</button></td></tr>`).join('') + '</tbody></table>'
+
+        : '<div class="empty">暂无记录</div>'
+
+      }</div></div>`;
+
+  } else if (p === 'qos') {
+
+    header = `<div class="page-header"><h1>QoS 带宽策略</h1></div>`;
+
+    let data = await api('qos');
+
+    content = `<div class="panel">
+
+      <div class="panel-header"><h4>分组带宽配置</h4></div>
+
+      <div class="panel-body">${
+
+        data && data.length ? '<table><tr><th>分组</th><th>属性</th><th>类型</th><th>当前值 (bps)</th><th>操作</th></tr>' +
+
+        data.map(q => `<tr><td>${badge(q.groupname,'default')}</td><td><code style="font-size:11px">${q.attribute}</code></td><td>${q.op}</td>
+
+          <td><strong>${fmtBps(q.value)}</strong> <span style="font-size:11px;color:var(--muted)">(${q.value})</span></td>
+
+          <td><input value="${q.value}" id="qv${q.id}" style="width:100px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px"><button class="btn btn-outline btn-sm" style="margin-left:4px" onclick="updateQos(${q.id})">更新</button></td></tr>`).join('') + '</tbody></table>'
+
+        : '<div class="empty">未配置 QoS 策略</div>'
+
+      }</div></div>`;
+
+  } else if (p === 'authlog') {
+
+    header = `<div class="page-header"><h1>认证日志</h1></div>`;
+
+    let data = await api('authlog');
+
+    content = `<div class="panel">
+
+      <div class="panel-header"><h4>最近认证记录</h4>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <input id="authSearch" placeholder="搜索用户名..." style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;width:140px" oninput="filterAuthLog()">
+          <span style="font-size:11px;color:var(--muted);margin:0 2px">时间:</span>
+          <button class="btn btn-outline btn-sm" onclick="setAuthRange(1)">1h</button>
+          <button class="btn btn-outline btn-sm" onclick="setAuthRange(6)">6h</button>
+          <button class="btn btn-outline btn-sm" onclick="setAuthRange(24)">24h</button>
+          <button class="btn btn-outline btn-sm" onclick="setAuthRange(168)">7d</button>
+          <button class="btn btn-outline btn-sm" onclick="setAuthRange(720)">30d</button>
+          <button class="btn btn-outline btn-sm" onclick="setAuthRange(0)" style="color:var(--muted)">All</button>
+          <button class="btn btn-outline btn-sm" onclick="clearLog()">清空日志</button>
+        </div></div>
+
+      <div class="panel-body">${
+
+        data && data.length ? '<table id="authLogTable"><thead><tr><th>ID</th><th>用户名</th><th>结果</th><th>时间</th></tr></thead><tbody>' +
+
+        data.map(l => `<tr data-user="${l.username}" data-date="${(l.authdate||'').substring(0,10)}"><td>${l.id}</td><td><code>${l.username}</code></td><td>${badge(l.reply, l.reply==='Access-Accept'?'success':'danger')}</td><td>${(l.authdate||'').substring(0,19)}</td></tr>`).join('') + '</tbody></table>'+
+        '<div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px;font-size:12px;color:var(--gray)">'+
+          '<span>每页</span>'+
+          '<select id="authPageSize" onchange="authPage=1;filterAuthLog()" style="padding:3px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px">'+
+            '<option value="10">10</option><option value="20" selected>20</option><option value="50">50</option><option value="100">100</option>'+
+          '</select>'+
+          '<span>条</span>'+
+          '<button class="btn btn-outline btn-sm" onclick="authPage=Math.max(1,authPage-1);filterAuthLog()" style="padding:2px 8px" id="authPrev">◀</button>'+
+          '<span id="authPageInfo" style="min-width:40px;text-align:center">1/1</span>'+
+          '<button class="btn btn-outline btn-sm" onclick="authPage++;filterAuthLog()" style="padding:2px 8px" id="authNext">▶</button>'+
+        '</div>'
+
+        : '<div class="empty">暂无记录</div>'
+
+      }</div></div>`;
+
+  } else if (p === 'groups') {
+
+    header = `<div class="page-header"><h1>用户组管理</h1></div>`;
+
+    content = `<div id="groupsContent"><div class="empty">加载中…</div></div>`;
+
+
+  } else if (p === 'settings') {
+    header = `<div class="page-header"><h1>${t('settingsTitle')}</h1></div>`;
+    let curTheme = localStorage.getItem('theme') || 'light';
+    content = `<div class="panel">
+      <div class="panel-header"><h4>页面风格</h4></div>
+      <div class="panel-body">
+        <div style="display:flex;gap:12px">
+          <label style="cursor:pointer;padding:12px 20px;border:2px solid ${curTheme==='light'?'var(--blue)':'var(--border)'};border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:6px" onclick="setTheme('light')">
+            <span style="font-size:24px">☀️</span><span style="font-size:12px;font-weight:600">纯白 Light</span>
+          </label>
+          <label style="cursor:pointer;padding:12px 20px;border:2px solid ${curTheme==='dark'?'var(--blue)':'var(--border)'};border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:6px" onclick="setTheme('dark')">
+            <span style="font-size:24px">🌙</span><span style="font-size:12px;font-weight:600">暗黑 Dark</span>
+          </label>
+        </div>
+      </div></div>
+
+    <div class="panel" style="margin-top:14px">
+      <div class="panel-header"><h4>语言 / Language</h4></div>
+      <div class="panel-body">
+        <div style="display:flex;gap:12px">
+          <label style="cursor:pointer;padding:12px 20px;border:2px solid ${lang==='zh'?'var(--blue)':'var(--border)'};border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:6px" onclick="setLang('zh')">
+            <span style="font-size:24px">🇨🇳</span><span style="font-size:12px;font-weight:600">中文</span>
+          </label>
+          <label style="cursor:pointer;padding:12px 20px;border:2px solid ${lang==='en'?'var(--blue)':'var(--border)'};border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:6px" onclick="setLang('en')">
+            <span style="font-size:24px">🇺🇸</span><span style="font-size:12px;font-weight:600">English</span>
+          </label>
+        </div>
+      </div></div>
+
+    <div class="panel" style="margin-top:14px">
+      <div class="panel-header"><h4>服务状态 Service Status</h4><span class="badge badge-blue" id="svcBadge">...</span></div>
+      <div class="panel-body" id="svcPanel"><div class="empty">加载中...</div></div></div>
+
+    <div class="panel" style="margin-top:14px">
+      <div class="panel-header"><h4>关于</h4></div>
+      <div class="panel-body" style="font-size:13px;color:var(--gray);line-height:1.7">
+        企业网络管理平台 v1.0<br>
+        集成 RADIUS 准入管理 + VPN 管理<br>
+        FreeRADIUS + 华为 AC6003/S57 系列
+      </div></div>`;
+
+  } else if (p === 'vpn') {
+
+    header = `<div class="page-header"><h1>VPN 节点管理</h1></div>`;
+
+    content = `<div class="panel">
+
+      <div class="panel-header"><h4>节点状态</h4></div>
+
+      <div class="panel-body" id="vpnData"><div class="empty">加载 VPN 数据…</div></div></div>`;
+
+  } else if (p === 'vpnlog') {
+
+    header = `<div class="page-header"><h1>VPN 连接日志</h1></div>`;
+
+    content = `<div class="panel">
+
+      <div class="panel-header"><h4>连接事件</h4></div>
+
+      <div class="panel-body" id="vpnLogData"><div class="empty">加载 VPN 日志…</div></div></div>`;
+
+  }
+
+
+
+  m.innerHTML = header + content;
+
+
+
+  // Load VPN data if visible
+
+  if (p === 'vpn') loadVpn();
+  if (p === 'settings') setTimeout(loadSvcStatus, 100);
+
+  if (p === 'vpnlog') loadVpnLog();
+
+  if (p === 'dashboard' && d.dashTab === 'online') loadVpnDash();
+
+}
+
+
+
+// ── User Actions ──
+
+async function createUser() {
+
+  let u = $('nuName').value.trim(), p = $('nuPass').value.trim(), g = $('nuGroup').value;
+
+  if(!u){toast('用户名不能为空','error');return}
+
+  let r = await api('create_user',{username:u,password:p,group:g});
+
+  toast(r.ok?`用户 ${u} 创建成功`:(r.msg||'创建失败'),r.ok?'success':'error');
+
+  if(r.ok){$('nuName').value='';$('nuPass').value='';render();}
+
+}
+
+async function delUser(u) {
+
+  if(!confirm('确认删除用户 '+u+'？')) return;
+
+  await api('delete_user',{username:u}); toast('已删除','success'); render();
+
+}
+
+async function delMac(m) {
+
+  if(!confirm('确认移除 MAC '+m+' 的免认证？')) return;
+
+  await api('mac_delete',{mac:m}); toast('已移除','success'); render();
+
+}
+
+async function updateQos(id) {
+
+  let v = $('qv'+id).value;
+
+  await api('update_qos',{id:id,value:v}); toast('已更新','success'); render();
+
+}
+
+async function clearLog() {
+
+  if(!confirm('确认清空所有认证日志？')) return;
+
+  await fetch('/api.php?action=clear_authlog',{method:'POST'}); toast('已清空','success'); render();
+
+}
+
+async function loadTotp() {
+
+  let r = await api('totp_status');
+
+  totpStatus = r || {};
+
+}
+
+async function enableTotp(uname) {
+
+  let r = await api('totp_enable',{username:uname});
+
+  if(!r.ok){toast('失败: '+r.msg,'error');return}
+
+  loadTotp(); render();
+
+  // Show QR
+
+  let otp = 'otpauth://totp/QCC-Network:'+encodeURIComponent(uname)+'?secret='+r.secret+'&issuer=QCC-Network';
+
+  $('qrUser').textContent = uname; $('qrSecret').textContent = r.secret;
+
+  try {
+
+    if(window.QRious) new QRious({element:$('qrCanvas'),value:otp,size:200,level:'M'});
+
+  } catch(e){}
+
+  $('qrModal').style.display = 'flex';
+
+}
+
+async function resetTotp(uname) {
+
+  if(!confirm('重置后旧动态码失效，确定？')) return;
+
+  await api('totp_reset',{username:uname}); loadTotp(); render(); toast('已重置','success');
+
+}
+
+function closeQR(){$('qrModal').style.display='none'}
+
+
+
+// ── VPN ──
+
+async function loadVpn() {
+
+  try {
+
+    let r = await fetch('/api/vpn/status').then(r=>r.json()).catch(()=>null);
+
+    let el = $('vpnData');
+
+    if(!r||!r.nodes){el.innerHTML='<div class="empty">VPN 服务未连接</div>';return}
+
+    el.innerHTML = '<table><tr><th>节点名</th><th>地址</th><th>状态</th><th>在线用户</th><th>上行</th><th>下行</th></tr>'+
+
+      (r.nodes||[]).map(n=>`<tr><td><strong>${n.name||n.id}</strong></td><td>${n.address||'-'}</td><td>${badge(n.online?'在线':'离线',n.online?'success':'danger')}</td><td>${n.clients||0}</td><td>${n.up||'0'} MB</td><td>${n.down||'0'} MB</td></tr>`).join('')+'</table>';
+
+  } catch(e){}
+
+}
+
+async function loadVpnLog() {
+
+  try {
+
+    let r = await fetch('/api/vpn/log').then(r=>r.json()).catch(()=>null);
+
+    let el = $('vpnLogData');
+
+    if(!r||!r.length){el.innerHTML='<div class="empty">暂无可用的 VPN 连接日志</div>';return}
+
+    el.innerHTML = '<table><tr><th>时间</th><th>用户</th><th>事件</th><th>节点</th></tr>'+
+
+      r.slice(0,20).map(l=>`<tr><td>${(l.time||'').substring(0,19)}</td><td>${l.user||'-'}</td><td>${badge(l.event||'连接',l.event==='connect'?'success':'default')}</td><td>${l.node||'-'}</td></tr>`).join('')+'</table>';
+
+  } catch(e){}
+
+}
+
+async function loadVpnDash() {
+
+  try {
+
+    let r = await fetch('/api/vpn/status').then(r=>r.json()).catch(()=>null);
+
+    if(!r||!r.nodes){$('vpnList').innerHTML='<div class="empty">VPN 服务未连接</div>';$('vpnCount').textContent='0';return}
+
+    let cnt = r.nodes.reduce((a,n)=>a+(n.clients||0),0);
+
+    $('vpnCount').textContent = cnt + ' 连接';
+
+    $('vpnList').innerHTML = '<table><tr><th>节点</th><th>用户数</th><th>流量</th></tr>'+
+
+      r.nodes.map(n=>`<tr><td><strong>${n.name||n.id}</strong></td><td>${n.clients||0}</td><td>↑${n.up||0}MB ↓${n.down||0}MB</td></tr>`).join('')+'</table>';
+
+    let r2 = await fetch('/api/vpn/log').then(r=>r.json()).catch(()=>null);
+
+    if(r2&&r2.length)
+
+      $('vpnLog').innerHTML = r2.slice(0,6).map(l=>`<div style="padding:8px 0;border-bottom:1px solid #f1f3f8;font-size:12px"><span style="color:var(--muted)">${(l.time||'').substring(0,19)}</span> <strong>${l.user||'-'}</strong> ${badge(l.event||'-','default')}</div>`).join('');
+
+    else $('vpnLog').innerHTML = '<div class="empty">暂无日志</div>';
+
+  } catch(e){}
+
+}
+
+
+
+// ── Utilities ──
+
+function fmtDur(sec) {
+
+  let s = parseInt(sec)||0;
+
+  if(s>=3600) return Math.floor(s/3600)+'h'+Math.floor(s%3600/60)+'m';
+
+  if(s>=60) return Math.floor(s/60)+'m'+s%60+'s';
+
+  return s+'s';
+
+}
+
+function fmtBps(v) {
+
+  let n = parseInt(v)||0;
+
+  if(n>=1e9) return (n/1e9).toFixed(1)+' Gbps';
+
+  if(n>=1e6) return (n/1e6).toFixed(1)+' Mbps';
+
+  if(n>=1e3) return (n/1e3).toFixed(0)+' Kbps';
+
+  return n+' bps';
+
+}
+
+let userFilter = '';
+function filterUsers() {
+  userFilter = (document.getElementById('userSearch')?.value||'').toLowerCase();
+  document.querySelectorAll('#usersTable tbody tr').forEach(r => {
+    r.style.display = (!userFilter || (r.cells[0]?.textContent||'').toLowerCase().includes(userFilter)) ? '' : 'none';
+  });
+}
+function filterGroups() {
+  let f = (document.getElementById('groupSearch')?.value||'').toLowerCase();
+  document.querySelectorAll('#groupsTable tbody tr').forEach(r => {
+    r.style.display = (!f || (r.cells[0]?.textContent||'').toLowerCase().includes(f)) ? '' : 'none';
+  });
+}
+function filterAuthLog() {
+  let search = (document.getElementById('authSearch')?.value||'').toLowerCase();
+  document.querySelectorAll('#authLogTable tbody tr').forEach(r => {
+    let user = (r.getAttribute('data-user')||'').toLowerCase();
+    let date = r.getAttribute('data-date')||'';
+    let show = true;
+    if (search && !user.includes(search)) show = false;
+    if (_authFrom && date < _authFrom) show = false;
+    if (_authTo && date > _authTo) show = false;
+    r.style.display = show ? '' : 'none';
+  });
+}
+let _authFrom='', _authTo='';
+function setAuthRange(hours) {
+  if (!hours){ _authFrom=''; _authTo=''; filterAuthLog(); return; }
+  let now = new Date();
+  _authTo = now.toISOString().split('T')[0];
+  now.setHours(now.getHours() - hours);
+  _authFrom = now.toISOString().split('T')[0];
+  filterAuthLog();
+}
+
+function loadPage(p) {
+
+  if(p==='groups') loadGroups();
+
+  if(p==='vpn') loadVpn();
+
+  if(p==='vpnlog') loadVpnLog();
+
+  if(p==='dashboard') loadVpnDash();
+
+}
+
+
+
+// ── Groups Management ──
+
+async function loadGroups() {
+
+  let data = await api('qos');
+
+  let users = await api('users');
+
+  // Aggregate: group name → { members, policies }
+
+  let groups = {};
+
+  if(users) users.forEach(u => {
+
+    let g = u.groupname || '-';
+
+    if(!groups[g]) groups[g] = { name: g, members: 0, policies: [] };
+
+    groups[g].members++;
+
+  });
+
+  if(data) data.forEach(q => {
+
+    if(!groups[q.groupname]) groups[q.groupname] = { name: q.groupname, members: 0, policies: [] };
+
+    groups[q.groupname].policies.push(q);
+
+  });
+
+
+
+  let glist = Object.values(groups);
+
+  let el = document.getElementById('groupsContent');
+
+  if(!el) return;
+
+
+
+  let html = `<div class="panel">
+
+    <div class="panel-header"><h4>创建用户组</h4></div>
+
+    <div class="panel-body">
+
+      <div class="input-wrap">
+
+        <input id="ngName" placeholder="分组名称" onkeyup="if(event.key==='Enter')createGroup()">
+
+        <button class="btn btn-primary" onclick="createGroup()">创建分组</button>
+
+      </div>
+
+    </div></div>
+
+
+
+  <div class="panel" style="margin-top:14px">
+
+    <div class="panel-header"><h4>现有分组</h4><span class="badge badge-blue">${glist.length} 个组</span><input id="groupSearch" placeholder="搜索组名…" style="margin-left:12px;padding:5px 10px;border:1px solid #e2e7f0;border-radius:6px;font-size:12px;width:160px" oninput="filterGroups()"></div>
+
+    <div class="panel-body">`;
+
+
+
+  if(glist.length) {
+
+    html += '<table id="groupsTable"><thead><tr><th>分组名</th><th>成员数</th><th>QoS 策略</th><th>操作</th></tr></thead><tbody>';
+
+    glist.forEach(g => {
+
+      let pol = g.policies.length ? g.policies.map(p => `${p.attribute.split('-').pop()}: ${fmtBps(p.value)}`).join('<br>') : '<span style="color:var(--muted)">无</span>';
+
+      html += `<tr><td><strong>${badge(g.name,'default')}</strong></td><td>${g.members} 人</td><td style="font-size:12px">${pol}</td>
+
+        <td><button class="btn btn-danger btn-sm" onclick="delGroup('${g.name}')" ${g.members?'disabled':''}>删除</button></td></tr>`;
+
+    });
+
+    html += '</tbody></table>';
+
+  } else {
+
+    html += '<div class="empty">暂无分组</div>';
+
+  }
+
+  html += '</div></div>';
+
+  el.innerHTML = html;
+
+}
+
+
+
+async function createGroup() {
+
+  let name = document.getElementById('ngName')?.value?.trim();
+
+  if(!name){toast('请输入分组名称','error');return}
+
+  // Add group-guest style entries
+
+  let r = await api('qos'); // group already exists check isn't needed - use INSERT IGNORE
+
+  await fetch(API + '?action=create_group', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({name})});
+
+  document.getElementById('ngName').value = '';
+
+  toast('分组已创建','success');
+
+  loadGroups();
+
+}
+
+async function delGroup(name) {
+
+  if(!confirm('确认删除分组 '+name+'？')) return;
+
+  await fetch(API + '?action=delete_group', {method:'POST', body:new URLSearchParams({name})});
+
+  toast('已删除','success');
+
+  loadGroups();
+
+}
+
+
+
+// ── Auto refresh ──
+
+function startRefresh() {
+
+  if(refreshTimer) clearInterval(refreshTimer);
+
+  refreshTimer = setInterval(() => render(), 30000);
+
+}
+
+
+
+
+function setTheme(t) {
+  document.body.className = t;
+  localStorage.setItem('theme', t);
+  render();
+}
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('lang', l);
+  document.querySelectorAll('.sidebar-item[data-key]').forEach(el => {
+    let k = el.getAttribute('data-key');
+    let txt = (L[lang]||L.zh)[k];
+    if (txt && el.childNodes.length) el.childNodes[el.childNodes.length-1].textContent = txt;
+  });
+  document.querySelectorAll('.sidebar h3[data-key]').forEach(el => {
+    let k = el.getAttribute('data-key');
+    let txt = (L[lang]||L.zh)[k];
+    if (txt) el.textContent = txt;
+  });
+  let tt = document.querySelector('[data-key="site_title"]');
+  if (tt) tt.textContent = (L[lang]||L.zh).site_title || 'Enterprise Network Mgmt';
+  let pt = document.getElementById('pageTitle');
+  if (pt) pt.textContent = (L[lang]||L.zh).site_title || 'Enterprise Network Mgmt';
+  render();
+}
+// Apply saved theme on load
+(function() {
+  let t = localStorage.getItem('theme') || 'light';
+  document.body.className = t;
+})();
+
+async function loadSvcStatus() {
+  try {
+    let r = await fetch('/admin/api/status.php').then(r=>r.json());
+    let el = document.getElementById('svcPanel');
+    let svcBadge = document.getElementById('svcBadge');
+    if(!el) return;
+    let names = {freeradius:'FreeRADIUS',mariadb:'MariaDB',ssh:'SSHd','portal-server':'Portal Server'};
+    let running = Object.values(r).filter(v=>v==='running').length;
+    if(svcBadge){svcBadge.textContent = running + '/' + Object.keys(r).length + ' running';svcBadge.className = running===Object.keys(r).length?'badge badge-success':'badge badge-warning';}
+    el.innerHTML = Object.entries(r).map(([k,v])=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;font-weight:600">'+(names[k]||k)+'</span><span>'+badge(v==='running'?'running':'stopped', v==='running'?'success':'danger')+'</span></div>').join('');
+  } catch(e) { console.error('Svc:', e); }
+}
+
+// ── Init ──
+
+try {
+
+  render().then(() => { startRefresh(); }).catch(e => {
+
+    document.getElementById('mainContent').innerHTML = '<div style=\"padding:40px;text-align:center;color:var(--red);font-size:14px\">加载失败：' + e.message + '<br><small style=\"color:var(--muted)\">请检查 API 是否可访问：/manage/api.php?action=dashboard</small></div>';
+
+    console.error('Init error:', e);
+
+  });
+
+} catch(e) {
+
+  document.getElementById('mainContent').innerHTML = '<div style=\"padding:40px;text-align:center;color:var(--red)\">初始化失败：' + e.message + '</div>';
+
+}
+
+</script>
+
+</body></html>
+

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>准入与认证中心 — RADIUS 单页整合原型 v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#0f62fe; --blue-hover:#0353e9; --blue-ghost:#edf5ff;
+  --green:#24a148; --green-bg:#e8f5eb;
+  --red:#da1e28; --red-bg:#fdeceb;
+  --warn:#b28600; --warn-bg:#fdf6dd; --warn-dot:#f1c21b;
+  --purple:#8a3ffc; --purple-bg:#f2edff;
+  --teal:#007d79; --teal-bg:#e6f5f5;
+  --bg:#f4f4f4; --layer:#fff; --layer-2:#f4f4f4;
+  --border:#e0e0e0; --border-strong:#c6c6c6;
+  --text:#161616; --text-2:#525252; --text-3:#8d8d8d;
+  --sidebar:#161616; --sidebar-text:#c6c6c6;
+  --font-sans:'IBM Plex Sans','Noto Sans SC','Microsoft YaHei',sans-serif;
+  --font-mono:'IBM Plex Mono','Consolas',monospace;
+  --sidebar-w:240px; --topbar-h:48px; --tag-r:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.proto-banner{background:var(--purple);color:#fff;font-size:12px;padding:5px 24px;display:flex;justify-content:space-between;align-items:center}
+.proto-banner b{font-weight:600}
+
+/* TopBar */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--topbar-h);background:var(--layer);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;z-index:100}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600}
+.logo{width:26px;height:26px;background:var(--blue);color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center}
+.crumb{color:var(--text-3);font-size:13px;display:flex;gap:6px;align-items:center}
+.crumb b{color:var(--text);font-weight:500}
+.env-tag{font-family:var(--font-mono);font-size:10px;color:var(--teal);border:1px solid var(--teal);padding:1px 6px;border-radius:var(--tag-r)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-2)}
+.avatar{width:24px;height:24px;background:var(--blue-ghost);color:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:11px}
+
+/* Sidebar */
+.sidebar{position:fixed;top:var(--topbar-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--sidebar);padding:12px 0 90px;overflow-y:auto}
+.nav-group{font-size:11px;color:#6f6f6f;padding:0 16px;margin:16px 0 6px;letter-spacing:.08em;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:8px;color:var(--sidebar-text);padding:0 16px 0 13px;height:36px;font-size:13px;cursor:pointer;border-left:3px solid transparent}
+.nav-item:hover{background:#252525;color:#fff}
+.nav-item.active{background:#2f2f2f;color:#fff;border-left-color:var(--blue)}
+.nav-new{font-size:9px;font-family:var(--font-mono);background:var(--blue);color:#fff;padding:1px 5px;border-radius:var(--tag-r)}
+.nav-fold{font-size:10px;color:#565656;padding:6px 16px 2px}
+.sidebar-footer{position:absolute;bottom:0;left:0;right:0;padding:12px 16px;border-top:1px solid #2a2a2a;background:var(--sidebar)}
+.sidebar-user{display:flex;align-items:center;gap:8px}
+.sidebar-user .avatar{background:#2f2f2f;color:#c6c6c6}
+.sidebar-user .name{font-size:12px;font-weight:600;color:#fff}
+
+.main{margin-left:var(--sidebar-w);padding:calc(var(--topbar-h) + 20px) 24px 48px;max-width:1480px}
+
+.panel{background:var(--layer);border:1px solid var(--border);margin-bottom:16px}
+.panel-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.panel-title{font-weight:600;font-size:14px}
+.panel-sub{color:var(--text-3);font-size:12px}
+.panel-tools{margin-left:auto;display:flex;gap:8px;align-items:center}
+.panel-body{padding:16px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:2px 10px;border-radius:var(--tag-r);font-weight:500;white-space:nowrap}
+.badge::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor}
+.b-ok{background:var(--green-bg);color:#0e6027}
+.b-warn{background:var(--warn-bg);color:#8e6f00}
+.b-err{background:var(--red-bg);color:#a2191f}
+.b-info{background:var(--blue-ghost);color:#0043ce}
+.b-gray{background:#e8e8e8;color:var(--text-2)}
+.badge.plain::before{display:none}
+.btn{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;font-size:14px;font-family:inherit;cursor:pointer;border:1px solid transparent;background:var(--blue);color:#fff;border-radius:0}
+.btn:hover{background:var(--blue-hover)}
+.btn.ghost{background:var(--layer);color:var(--text);border-color:var(--border-strong)}
+.btn.sm{height:32px;font-size:13px;padding:0 12px}
+input[type=text]{height:36px;border:none;box-shadow:inset 0 0 0 1px var(--border-strong);background:var(--layer);padding:0 12px;font-family:var(--font-mono);font-size:13px;border-radius:0;outline:none}
+input[type=text]:focus{box-shadow:inset 0 0 0 1px var(--blue)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:12px;font-weight:600;color:var(--text-2);padding:0 14px;height:40px;border-bottom:1px solid var(--border-strong);white-space:nowrap;background:var(--layer)}
+td{padding:0 14px;height:42px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:hover td{background:#fafafa}
+td.num,th.num{text-align:right;font-family:var(--font-mono);font-size:12px}
+td.mono{font-family:var(--font-mono);font-size:12px}
+.mono-note{font-family:var(--font-mono);font-size:11px;color:var(--text-3)}
+
+/* 指标卡 */
+.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px}
+.stat-card{background:var(--layer);border:1px solid var(--border);padding:13px 15px;cursor:pointer}
+.stat-card:hover{border-color:var(--blue)}
+.sk{font-size:11px;color:var(--text-3);margin-bottom:5px}
+.sv{font-family:var(--font-mono);font-size:22px;font-weight:600;line-height:1.1}
+.sv small{font-size:12px;color:var(--text-3);font-weight:400}
+.ssub{font-size:11px;margin-top:5px;color:var(--text-2)}
+.ssub .up{color:var(--green);font-family:var(--font-mono)}
+.ssub .dn{color:var(--red);font-family:var(--font-mono)}
+
+/* L1 页签 */
+.l1-tabs{display:flex;border:1px solid var(--border);border-bottom:1px solid var(--border-strong);background:var(--layer);margin-bottom:0}
+.l1-tab{flex:1;padding:13px 10px;font-size:14px;color:var(--text-2);cursor:pointer;border:none;background:none;font-family:inherit;text-align:center;border-bottom:3px solid transparent;position:relative}
+.l1-tab:hover{color:var(--text);background:var(--layer-2)}
+.l1-tab.active{color:var(--blue);font-weight:600;border-bottom-color:var(--blue)}
+.l1-tab .l1-n{font-family:var(--font-mono);font-size:10px;background:var(--bg);color:var(--text-2);padding:1px 5px;border-radius:var(--tag-r);margin-left:6px}
+.l1-tab.active .l1-n{background:var(--blue-ghost);color:var(--blue)}
+.l1-tab .l1-ico{margin-right:6px}
+
+/* L2 子页签 */
+.l2-bar{display:flex;gap:2px;background:var(--layer);border:1px solid var(--border);border-top:none;padding:8px 12px 0;overflow-x:auto}
+.l2-tab{padding:7px 14px;font-size:13px;color:var(--text-2);cursor:pointer;background:var(--layer-2);border:1px solid var(--border);border-bottom:none;font-family:inherit;white-space:nowrap}
+.l2-tab:hover{color:var(--text);background:var(--bg)}
+.l2-tab.active{color:var(--blue);font-weight:600;background:var(--layer);border-color:var(--border-strong);box-shadow:0 1px 0 var(--layer)}
+.l2-tab .l2-n{font-family:var(--font-mono);font-size:10px;color:var(--text-3);margin-left:5px}
+
+.l3-wrap{border:1px solid var(--border-strong);border-top:none;background:var(--layer)}
+.view{display:none}.view.active{display:block;animation:fadein .18s}
+@keyframes fadein{from{opacity:.4}to{opacity:1}}
+
+/* 链路图 */
+.chain{display:flex;align-items:stretch;padding:22px 10px;overflow-x:auto}
+.chain-node{flex:1;min-width:175px;border:1px solid var(--border);background:var(--layer);padding:12px 14px;cursor:pointer}
+.chain-node:hover{border-color:var(--blue);background:var(--blue-ghost)}
+.cn-tag{font-size:10px;font-family:var(--font-mono);color:var(--text-3);letter-spacing:.04em}
+.cn-name{font-weight:600;font-size:13px;margin:3px 0 6px}
+.cn-detail{font-size:11px;color:var(--text-2);line-height:1.8}
+.cn-detail b{font-family:var(--font-mono);color:var(--text)}
+.cn-arrow{display:flex;align-items:center;padding:0 6px;color:var(--text-3);flex:none}
+.cn-arrow svg{width:22px;height:22px}
+
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.toolbar .hint{font-size:11px;color:var(--text-3);margin-left:auto}
+
+/* 决策标注 */
+.decision{border:1px dashed var(--purple);background:var(--purple-bg);padding:10px 14px;font-size:12px;color:#491d8c;margin-top:14px}
+.decision b{font-weight:600}
+
+@media (max-width:1200px){.stat-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="proto-banner">
+  <div><b>界面原型 v2</b> · 准入与认证中心（RADIUS 单页整合）· 9 页 → 1 页 · 四页签 + 十二子模块</div>
+  <span>演示数据 · Carbon 风格与 admin-spa 线上一致</span>
+</div>
+
+<header class="topbar">
+  <div class="brand"><span class="logo">R</span>RADIUS Ops</div>
+  <nav class="crumb">企业网络管理平台 / <b>准入与认证</b> / <span class="cur">准入与认证中心</span></nav>
+  <span class="env-tag">PRODUCTION</span>
+  <div class="topbar-right"><div class="avatar">W</div></div>
+</header>
+
+<aside class="sidebar">
+  <div class="nav-group">总览</div>
+  <div class="nav-item">首页概览</div>
+
+  <div class="nav-group">用户与组</div>
+  <div class="nav-item">用户列表</div>
+  <div class="nav-item">用户组管理</div>
+  <div class="nav-item">TOTP 动态码 <span class="mono-note" style="margin-left:auto;font-size:9px;color:#6f6f6f">决策点</span></div>
+
+  <div class="nav-group">准入与认证 ★</div>
+  <div class="nav-item active">准入与认证中心<span class="nav-new">NEW</span></div>
+  <div class="nav-fold">▾ 原 9 页收进本页四页签：</div>
+  <div class="nav-fold" style="color:#6f6f6f;line-height:1.7;font-size:10px">
+    运行监控(在线/日志/记账)<br>准入策略(旁路/Profile/参数)<br>服务配置(NAS/字典/Portal/证书)<br>链路拓扑<br>
+    <span style="color:#565656">旧路由保留可直达</span>
+  </div>
+
+  <div class="nav-group">VPN 管理</div>
+  <div class="nav-item">节点管理</div>
+  <div class="nav-item" style="opacity:.55">…（不变）</div>
+  <div class="nav-group">网络资产 / 交换机 / 系统</div>
+  <div class="nav-item" style="opacity:.55">…（分组不变）</div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user"><div class="avatar">W</div><div class="name">double</div></div>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- 指标卡 + 快捷排障 -->
+  <div class="stat-grid">
+    <div class="stat-card" onclick="go2('monitor','online')" title="→ 运行监控 · 在线会话">
+      <div class="sk">在线终端</div><div class="sv">247</div>
+      <div class="ssub"><span class="up">▲ 12</span> 较昨日同时段</div>
+    </div>
+    <div class="stat-card" onclick="go2('monitor','authlog')" title="→ 运行监控 · 认证日志">
+      <div class="sk">24h 认证请求</div><div class="sv">18,204</div>
+      <div class="ssub">成功 17,861 · 失败 <span class="dn">343</span></div>
+    </div>
+    <div class="stat-card" onclick="go2('monitor','authlog')" title="→ 运行监控 · 认证日志">
+      <div class="sk">认证成功率</div><div class="sv">98.1<small>%</small></div>
+      <div class="ssub"><span class="dn">▼ 0.4%</span> EAP-TLS 失败 21 次</div>
+    </div>
+    <div class="stat-card" onclick="go2('policy','macpass')" title="→ 准入策略 · MAC 免认证">
+      <div class="sk">MAC 旁路生效中</div><div class="sv">63</div>
+      <div class="ssub">7 天内到期 9 条</div>
+    </div>
+    <div class="stat-card" onclick="go2('config','nas')" title="→ 服务配置 · NAS 设备">
+      <div class="sk">NAS 设备</div><div class="sv">14<small> / 14</small></div>
+      <div class="ssub"><span class="up">●</span> 全部健康 · 24h 零静默</div>
+    </div>
+    <div class="stat-card" onclick="go2('policy','profiles')" title="→ 准入策略 · Profile">
+      <div class="sk">活动 Profile</div><div class="sv">8</div>
+      <div class="ssub">boss / tech / profile51 …</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-body toolbar" style="margin-bottom:0">
+      <b style="font-size:13px">快捷排障</b>
+      <input type="text" placeholder="输入用户名 / MAC / IP …" style="width:280px">
+      <button class="btn sm" onclick="go2('monitor','authlog')">→ 认证日志</button>
+      <button class="btn ghost sm" onclick="go2('monitor','online')">→ 在线会话</button>
+      <button class="btn ghost sm" onclick="go2('monitor','acct')">→ 记账查询</button>
+      <span class="hint">一键带参切换子模块 · hash 定位可收藏（/nac#/monitor/authlog）</span>
+    </div>
+  </div>
+
+  <!-- L1 页签 -->
+  <div class="l1-tabs">
+    <button class="l1-tab active" data-l1="monitor" onclick="go1('monitor')"><span class="l1-ico">◉</span>运行监控<span class="l1-n">3</span></button>
+    <button class="l1-tab" data-l1="policy" onclick="go1('policy')"><span class="l1-ico">◎</span>准入策略<span class="l1-n">3</span></button>
+    <button class="l1-tab" data-l1="config" onclick="go1('config')"><span class="l1-ico">⚙</span>服务配置<span class="l1-n">6</span></button>
+    <button class="l1-tab" data-l1="topo" onclick="go1('topo')"><span class="l1-ico">⇄</span>链路拓扑<span class="l1-n">1</span></button>
+  </div>
+
+  <!-- L2 bar -->
+  <div class="l2-bar" id="l2bar"></div>
+
+  <!-- L3 内容 -->
+  <div class="l3-wrap">
+
+    <!-- ═══ ① 运行监控 ═══ -->
+    <section class="view active" id="v-monitor">
+      <div class="sub" id="s-online">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">在线会话</span>
+          <span class="panel-sub">原 /online 全功能 · radacct 实时</span>
+          <div class="panel-tools">
+            <input type="text" placeholder="用户名" style="width:140px">
+            <input type="text" placeholder="MAC" style="width:140px">
+            <button class="btn sm">查询</button>
+            <span class="badge b-info">247 在线</span>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>用户</th><th>MAC</th><th>NAS</th><th>SSID/端口</th><th>VLAN</th><th class="num">会话开始</th><th class="num">在线时长</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>double</td><td class="mono">5489-98xx-1a2b</td><td class="mono">AC6003-A</td><td>test022</td><td class="num">81</td><td class="mono">09-21 23:47</td><td class="num">2d 14:03</td><td><a href="#">下线</a></td></tr>
+            <tr><td>wangchong</td><td class="mono">5489-98xx-3c4d</td><td class="mono">AC6003-A</td><td>test011</td><td class="num">81</td><td class="mono">09-22 10:10</td><td class="num">1d 03:27</td><td><a href="#">下线</a></td></tr>
+            <tr><td>zhuxuan</td><td class="mono">5489-98xx-5e6f</td><td class="mono">S57-F13-01</td><td>GE0/0/12</td><td class="num">16</td><td class="mono">09-23 07:28</td><td class="num">06:41</td><td><a href="#">下线</a></td></tr>
+            <tr><td>MAC:bypass</td><td class="mono">04f9-38xx-9a01</td><td class="mono">S57-F2-02</td><td>GE0/0/8</td><td class="num">20</td><td class="mono">09-10 16:02</td><td class="num">12d 22:10</td><td><a href="#">下线</a></td></tr>
+            <tr><td>boss-liu</td><td class="mono">5489-98xx-9i0j</td><td class="mono">S57-F13-03</td><td>GE0/0/3</td><td class="num">16</td><td class="mono">09-23 13:46</td><td class="num">17:22</td><td><a href="#">下线</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sub" id="s-authlog" style="display:none">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">认证日志</span>
+          <span class="panel-sub">原 /authlog 全功能 · radpostauth</span>
+          <div class="panel-tools">
+            <input type="text" placeholder="用户" style="width:120px">
+            <select style="height:36px;border:1px solid var(--border-strong);font-size:13px"><option>全部结果</option><option>仅失败</option><option>仅成功</option></select>
+            <button class="btn sm">查询</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>时间</th><th>用户</th><th>NAS</th><th>方法</th><th>结果</th><th>失败原因</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">13:52:41</td><td>double</td><td class="mono">AC6003-A</td><td class="mono">EAP-TLS</td><td><span class="badge b-ok">成功</span></td><td>—</td></tr>
+            <tr><td class="mono">13:51:08</td><td>visitor-09</td><td class="mono">S57-F2-01</td><td class="mono">MAC</td><td><span class="badge b-err">失败</span></td><td class="mono">未注册 MAC，无旁路记录</td></tr>
+            <tr><td class="mono">13:50:55</td><td>zhuxuan</td><td class="mono">S57-F13-01</td><td class="mono">Portal+TOTP</td><td><span class="badge b-ok">成功</span></td><td>—</td></tr>
+            <tr><td class="mono">13:48:32</td><td>test-device-3</td><td class="mono">AC6003-B</td><td class="mono">EAP-TLS</td><td><span class="badge b-err">失败</span></td><td class="mono">证书链校验拒绝（check-eap-tls）</td></tr>
+            <tr><td class="mono">13:46:03</td><td>mac-bypass-77</td><td class="mono">S57-F2-02</td><td class="mono">MAC</td><td><span class="badge b-ok">旁路</span></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sub" id="s-acct" style="display:none">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">记账查询</span>
+          <span class="panel-sub">原 /accounting 全功能 · radacct · 默认近 24h（决策点 3）</span>
+          <div class="panel-tools">
+            <input type="text" placeholder="用户" style="width:120px">
+            <input type="text" placeholder="2026-09-22 ~ 2026-09-23" style="width:220px">
+            <button class="btn sm">查询</button>
+            <button class="btn ghost sm">导出 CSV</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>用户</th><th>会话开始</th><th>会话结束</th><th class="num">时长</th><th class="num">上行</th><th class="num">下行</th><th>终止原因</th></tr></thead>
+          <tbody>
+            <tr><td>double</td><td class="mono">09-22 08:31</td><td class="mono">09-22 18:40</td><td class="num">10h 09m</td><td class="num">2.1 GB</td><td class="num">8.7 GB</td><td class="mono">User-Request</td></tr>
+            <tr><td>wangchong</td><td class="mono">09-22 10:10</td><td class="mono">在线中</td><td class="num">27h</td><td class="num">940 MB</td><td class="num">3.2 GB</td><td class="mono">—</td></tr>
+            <tr><td>it-wangchong</td><td class="mono">09-18 04:55</td><td class="mono">09-18 13:50</td><td class="num">8h 55m</td><td class="num">412 MB</td><td class="num">1.4 GB</td><td class="mono">Idle-Timeout</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ ② 准入策略 ═══ -->
+    <section class="view" id="v-policy">
+      <div class="sub" id="s-macpass">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">MAC 免认证（三表旁路）</span>
+          <span class="panel-sub">原 /macpass 全功能 · radmacbypass + radcheck + radusergroup · 6 个月有效</span>
+          <div class="panel-tools">
+            <button class="btn sm">＋ 新增旁路</button>
+            <button class="btn ghost sm">批量导入</button>
+            <span class="badge b-info">63 生效中</span>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>MAC</th><th>绑定用户</th><th>NAS</th><th class="num">登记时间</th><th class="num">到期</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">04f9-38xx-9a01</td><td class="mono">printer-2f-01</td><td class="mono">S57-F2-02</td><td class="mono">06-12</td><td class="num">12-09</td><td><span class="badge b-ok">生效中</span></td><td><a href="#">续期</a> · <a href="#">删除</a></td></tr>
+            <tr><td class="mono">04f9-38xx-9b22</td><td class="mono">tv-13f-maxhub</td><td class="mono">S57-F13-03</td><td class="mono">07-30</td><td class="num">09-27</td><td><span class="badge b-warn">7 天内到期</span></td><td><a href="#">续期</a> · <a href="#">删除</a></td></tr>
+            <tr><td class="mono">5489-98xx-77aa</td><td class="mono">sensor-idc-05</td><td class="mono">S57-IDC-01</td><td class="mono">05-18</td><td class="num">11-14</td><td><span class="badge b-ok">生效中</span></td><td><a href="#">续期</a> · <a href="#">删除</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sub" id="s-profiles" style="display:none">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">Profile 管理</span>
+          <span class="panel-sub">原 /user-profiles 全功能 · radgroupreply · VLAN / QoS / ACL</span>
+          <div class="panel-tools"><button class="btn sm">＋ 新建 Profile</button><span class="badge b-info">8 个</span></div>
+        </div>
+        <table>
+          <thead><tr><th>Profile</th><th>匹配规则</th><th class="num">VLAN</th><th>限速</th><th>ACL</th><th class="num">绑定用户</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">boss_profile</td><td>OU=BOSS</td><td class="num">16</td><td class="mono">50M/50M</td><td class="mono">—</td><td class="num">3</td><td><a href="#">编辑</a></td></tr>
+            <tr><td class="mono">tech_profile</td><td>OU=TechCenter（无线）</td><td class="num">81</td><td class="mono">50M/50M</td><td class="mono">—</td><td class="num">41</td><td><a href="#">编辑</a></td></tr>
+            <tr><td class="mono">profile51</td><td>用户 double</td><td class="num">51</td><td class="mono">华为 VSA</td><td class="mono">3000</td><td class="num">1</td><td><a href="#">编辑</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sub" id="s-qos" style="display:none">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">RADIUS 参数</span>
+          <span class="panel-sub">原 /qos 全功能 · HUAWEI-Input/Output-Average-Rate VSA</span>
+          <div class="panel-tools"><button class="btn sm">＋ 新建参数</button><span class="badge b-info">12 条</span></div>
+        </div>
+        <table>
+          <thead><tr><th>参数名</th><th>属性</th><th class="num">值</th><th>说明</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">qos-50m</td><td class="mono">HUAWEI-Input-Average-Rate</td><td class="num">51200</td><td>上行 50M（kbps）</td><td><a href="#">编辑</a> · <a href="#">删除</a></td></tr>
+            <tr><td class="mono">qos-50m</td><td class="mono">HUAWEI-Output-Average-Rate</td><td class="num">51200</td><td>下行 50M（kbps）</td><td><a href="#">编辑</a> · <a href="#">删除</a></td></tr>
+            <tr><td class="mono">vlan-16</td><td class="mono">Tunnel-Medium-Type / VLANId</td><td class="num">16</td><td>BOSS 有线 VLAN</td><td><a href="#">编辑</a> · <a href="#">删除</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ ③ 服务配置 ═══ -->
+    <section class="view" id="v-config">
+      <div class="sub" id="s-nas">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">NAS 设备</span>
+          <span class="panel-sub">原 /radius-config · NAS 表 · Secret 默认打码（点击展示记审计）</span>
+          <div class="panel-tools"><button class="btn sm">＋ 添加 NAS</button><span class="badge b-info">14 台</span></div>
+        </div>
+        <table>
+          <thead><tr><th>NAS 地址</th><th>类型</th><th>Secret</th><th>说明</th><th class="num">24h 请求</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">192.168.30.107</td><td class="mono">AC6003</td><td class="mono">•••••• <a href="#">显示</a></td><td>无线 AC-A（test011/022）</td><td class="num">12,904</td><td><span class="badge b-ok">健康</span></td><td><a href="#">编辑</a> · <a href="#">删除</a></td></tr>
+            <tr><td class="mono">172.18.164.93</td><td class="mono">AC</td><td class="mono">•••••• <a href="#">显示</a></td><td>QLink-RADIUS（CoA 通道）</td><td class="num">1,240</td><td><span class="badge b-ok">健康</span></td><td><a href="#">编辑</a> · <a href="#">删除</a></td></tr>
+            <tr><td class="mono">192.168.110.100</td><td class="mono">other</td><td class="mono">•••••• <a href="#">显示</a></td><td>测试 NAS</td><td class="num">0</td><td><span class="badge b-warn">静默 30d</span></td><td><a href="#">编辑</a> · <a href="#">删除</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sub" id="s-dict" style="display:none">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">属性字典</span>
+          <span class="panel-sub">原 /radius-config · 字典表 · 312 条</span>
+          <div class="panel-tools"><input type="text" placeholder="搜索属性 / Vendor" style="width:220px"><button class="btn sm">＋ 新增</button></div>
+        </div>
+        <table>
+          <thead><tr><th>属性</th><th>Vendor</th><th class="num">编号</th><th>类型</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">User-Name</td><td class="mono">—</td><td class="num">1</td><td class="mono">string</td><td>标准属性</td></tr>
+            <tr><td class="mono">Tunnel-Private-Group-Id</td><td class="mono">—</td><td class="num">81</td><td class="mono">string</td><td>VLAN 下发</td></tr>
+            <tr><td class="mono">HUAWEI-Input-Average-Rate</td><td class="mono">Huawei-2011</td><td class="num">26/1</td><td class="mono">integer</td><td>华为限速 VSA</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sub" id="s-urepl" style="display:none">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">用户私有属性</span>
+          <span class="panel-sub">原 /radius-config · radreply · 35 条</span>
+          <div class="panel-tools"><input type="text" placeholder="搜索用户" style="width:160px"><button class="btn sm">＋ 新增</button></div>
+        </div>
+        <table>
+          <thead><tr><th>用户</th><th>属性</th><th>值</th><th class="num">优先级</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">double</td><td class="mono">Tunnel-Private-Group-Id</td><td class="mono">51</td><td class="num">1</td><td><a href="#">编辑</a> · <a href="#">删除</a></td></tr>
+            <tr><td class="mono">boss-liu</td><td class="mono">Filter-Id</td><td class="mono">boss_acl</td><td class="num">1</td><td><a href="#">编辑</a> · <a href="#">删除</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sub" id="s-gchk" style="display:none">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">组认证控制</span>
+          <span class="panel-sub">原 /radius-config · radgroupcheck · 6 条</span>
+          <div class="panel-tools"><button class="btn sm">＋ 新增</button></div>
+        </div>
+        <table>
+          <thead><tr><th>组</th><th>检查属性</th><th>值</th><th>说明</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">tech</td><td class="mono">Calling-Station-Id</td><td class="mono">regex ^54</td><td>仅允许公司终端 MAC</td><td><a href="#">编辑</a> · <a href="#">删除</a></td></tr>
+            <tr><td class="mono">vip</td><td class="mono">NAS-IP-Address</td><td class="mono">192.168.30.107</td><td>仅限 AC-A 接入</td><td><a href="#">编辑</a> · <a href="#">删除</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sub" id="s-portal" style="display:none">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">Portal 服务</span>
+          <span class="panel-sub">原 /portal 全功能 · 认证页配置 / TOTP 集成 / ACK_AUTH 联动</span>
+          <div class="panel-tools"><span class="badge b-ok">运行中</span></div>
+        </div>
+        <table>
+          <thead><tr><th>实例</th><th>监听</th><th>认证方式</th><th class="num">24h 认证</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>Portal 主</td><td class="mono">:8080 /portal</td><td class="mono">账密 + TOTP</td><td class="num">182</td><td><span class="badge b-ok">在线</span></td><td><a href="#">配置</a></td></tr>
+            <tr><td>home-main 本地化</td><td class="mono">daloRADIUS 定制</td><td class="mono">中文页 + CoA</td><td class="num">—</td><td><span class="badge b-ok">已部署</span></td><td><a href="#">查看</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sub" id="s-certs" style="display:none">
+        <div class="panel-head" style="border-bottom:1px solid var(--border)">
+          <span class="panel-title">证书管理</span>
+          <span class="panel-sub">原 /certs 全功能 · EAP-TLS · CA: qcc-radius-ca-2026</span>
+          <div class="panel-tools"><button class="btn sm">＋ 签发</button><span class="badge b-info">9 张</span></div>
+        </div>
+        <table>
+          <thead><tr><th>主题 CN</th><th>类型</th><th class="num">签发日</th><th class="num">到期</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">qcc-radius-ca-2026</td><td>根 CA</td><td class="mono">2026-01</td><td class="num">2036-01</td><td><span class="badge b-ok">有效</span></td><td><a href="#">详情</a></td></tr>
+            <tr><td class="mono">srv-radius-200</td><td>服务端证书</td><td class="mono">2026-01</td><td class="num">2027-01</td><td><span class="badge b-warn">98 天后到期</span></td><td><a href="#">续签</a></td></tr>
+            <tr><td class="mono">double@qcc</td><td>客户端证书</td><td class="mono">2026-03</td><td class="num">2027-03</td><td><span class="badge b-ok">有效</span></td><td><a href="#">吊销</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ ④ 链路拓扑 ═══ -->
+    <section class="view" id="v-topo">
+      <div class="panel-head" style="border-bottom:1px solid var(--border)">
+        <span class="panel-title">认证链路</span>
+        <span class="panel-sub">节点数字实时聚合 · 点击节点跳转对应子模块</span>
+        <div class="panel-tools"><span class="badge b-ok">链路健康 · 3/3 节点正常</span></div>
+      </div>
+      <div class="chain">
+        <div class="chain-node" onclick="go2('policy','macpass')" title="→ MAC 免认证">
+          <div class="cn-tag">TERMINAL</div>
+          <div class="cn-name">终端层</div>
+          <div class="cn-detail">802.1X 认证 <b>221</b><br>MAC 旁路 <b>63</b><br>Portal 认证 <b>26</b></div>
+        </div>
+        <div class="cn-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h16m-5-5 5 5-5 5"/></svg></div>
+        <div class="chain-node" onclick="go2('config','nas')" title="→ NAS 设备">
+          <div class="cn-tag">NAS</div>
+          <div class="cn-name">网络设备层</div>
+          <div class="cn-detail">AC6003 ×2 · S57 ×12<br>24h 请求 <b>18,204</b><br><span class="badge b-ok" style="font-size:10px;padding:0 6px">14/14 健康</span></div>
+        </div>
+        <div class="cn-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h16m-5-5 5 5-5 5"/></svg></div>
+        <div class="chain-node" onclick="go2('monitor','online')" title="→ 在线会话">
+          <div class="cn-tag">FreeRADIUS</div>
+          <div class="cn-name">认证服务层</div>
+          <div class="cn-detail">.200 主 <span class="badge b-ok" style="font-size:10px;padding:0 6px">主用</span><br>.163 / IDC .229 灾备<br>三节点 radsec 正常</div>
+        </div>
+        <div class="cn-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h16m-5-5 5 5-5 5"/></svg></div>
+        <div class="chain-node" onclick="go2('monitor','authlog')" title="→ 认证日志">
+          <div class="cn-tag">POLICY</div>
+          <div class="cn-name">策略引擎</div>
+          <div class="cn-detail">radcheck + radusergroup<br>TOTP · EAP-TLS 校验<br>24h 拒绝 <b>343</b></div>
+        </div>
+        <div class="cn-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h16m-5-5 5 5-5 5"/></svg></div>
+        <div class="chain-node" onclick="go2('policy','qos')" title="→ RADIUS 参数">
+          <div class="cn-tag">AUTHZ</div>
+          <div class="cn-name">授权下发</div>
+          <div class="cn-detail">VLAN 16/81/51 …<br>华为 VSA 限速 50M<br>ACL 3000 绑定</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="decision">
+      <b>整合说明</b>：原 9 个页面（/online /authlog /accounting /macpass /user-profiles /qos /radius-config /portal /certs）全部收进本页四页签，主体组件原样搬入（提取-搬入策略），功能零删减；旧路由保留薄壳渲染同一组件，书签直达不受影响。
+      <b>决策点</b>：① TOTP 是否并入「服务配置」；② 记账查询并入后默认近 24h；③ 侧边栏本组只留此一个入口。
+    </div>
+  </div>
+</main>
+
+<script>
+const L2 = {
+  monitor:[['online','在线会话'],['authlog','认证日志'],['acct','记账查询']],
+  policy:[['macpass','MAC 免认证'],['profiles','Profile'],['qos','RADIUS 参数']],
+  config:[['nas','NAS 设备'],['dict','属性字典'],['urepl','私有属性'],['gchk','组控制'],['portal','Portal'],['certs','证书']],
+  topo:[['topo','链路图']],
+}
+let cur1='monitor', cur2='online';
+function renderL2(){
+  const bar=document.getElementById('l2bar');
+  bar.innerHTML=L2[cur1].map(([k,l])=>`<button class="l2-tab${k===cur2?' active':''}" data-k="${k}" onclick="go2('${cur1}','${k}')">${l}</button>`).join('');
+}
+function go1(l1){
+  cur1=l1; cur2=L2[l1][0][0];
+  document.querySelectorAll('.l1-tab').forEach(t=>t.classList.toggle('active',t.dataset.l1===l1));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('active',s.id==='v-'+l1));
+  renderL2(); showSub();
+}
+function go2(l1,l2){
+  cur1=l1; cur2=l2;
+  document.querySelectorAll('.l1-tab').forEach(t=>t.classList.toggle('active',t.dataset.l1===l1));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('active',s.id==='v-'+l1));
+  renderL2(); showSub();
+}
+function showSub(){
+  document.querySelectorAll(`#v-${cur1} .sub`).forEach(s=>s.style.display=s.id==='s-'+cur2?'':'none');
+}
+renderL2();
+</script>
+</body>
+</html>

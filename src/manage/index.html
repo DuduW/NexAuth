@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>企业网络管理平台</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  :root { --primary: #1450C8; }
+  body { background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; }
+  .navbar { background: var(--primary); }
+  .card { border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .stat-card { border-left: 4px solid var(--primary); transition: transform 0.15s; }
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-card .v { font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .stat-card .l { font-size: 13px; color: #6b7280; }
+  .table { font-size: 13px; margin: 0; }
+  .table th { font-weight: 600; color: #4b5563; background: #f9fafb; border-bottom-width: 1px; white-space: nowrap; }
+  .table td { vertical-align: middle; }
+  .badge-accept { background: #d1fae5; color: #065f46; }
+  .badge-reject { background: #fee2e2; color: #991b1b; }
+  .badge-expired { background: #fef3c7; color: #92400e; }
+  .nav-tabs .nav-link { font-size: 14px; color: #4b5563; border: none; padding: 10px 18px; }
+  .nav-tabs .nav-link.active { color: var(--primary); border-bottom: 2px solid var(--primary); font-weight: 600; background: none; }
+  .tab-content { padding-top: 12px; }
+  .form-control, .form-select { font-size: 13px; border-radius: 8px; }
+  .btn-sm { font-size: 13px; border-radius: 8px; }
+  .btn-primary { background: var(--primary); border-color: var(--primary); }
+  .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+  .spinner { width: 18px; height: 18px; border: 2px solid #e5e7eb; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 768px) { .nav-tabs .nav-link { padding: 8px 12px; font-size: 12px; } .table { font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark px-3">
+  <span class="navbar-brand mb-0 h1 fs-5"><i class="bi bi-router me-2"></i>企业网络管理平台</span>
+  <span class="text-white-50" style="font-size:12px">FreeRADIUS + 华为 AC</span>
+</nav>
+
+<div class="container-fluid px-3 pt-3" id="app">
+
+  <!-- 统计 -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3" v-for="s in stats" :key="s.label">
+      <div class="card stat-card p-3">
+        <div class="v" :class="s.color">{{ s.value }}</div>
+        <div class="l">{{ s.label }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 导航 -->
+  <div class="card">
+    <ul class="nav nav-tabs px-3 pt-2" role="tablist">
+      <li class="nav-item" v-for="t in tabs" :key="t.id">
+        <button class="nav-link" :class="{ active: activeTab === t.id }" @click="activeTab = t.id; loadTab(t.id)" :data-bs-toggle="t.id">
+          <i :class="t.icon + ' me-1'"></i>{{ t.label }}
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content px-3 pb-3">
+      <!-- Tab1: 在线用户 -->
+      <div v-show="activeTab === 'online'" class="pt-2">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead><tr><th>用户</th><th>IP</th><th>MAC</th><th>上线时间</th><th>上行</th><th>下行</th><th>时长</th></tr></thead>
+            <tbody>
+              <tr v-for="u in online" :key="u.radacctid">
+                <td><strong>{{ u.username }}</strong></td>
+                <td><code>{{ u.ip }}</code></td>
+                <td><code>{{ u.mac }}</code></td>
+                <td>{{ fmtTime(u.acctstarttime) }}</td>
+                <td class="text-primary">{{ u.up_mb }} MB</td>
+                <td class="text-success">{{ u.down_mb }} MB</td>
+                <td>{{ fmtDuration(u.acctsessiontime) }}</td>
+              </tr>
+              <tr v-if="!online.length"><td colspan="7" class="text-center text-muted py-3">暂无在线用户</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab2: 用户管理 -->
+      <div v-show="activeTab === 'users'" class="pt-2">
+        <div class="row g-2 mb-3">
+          <div class="col-auto"><input class="form-control form-control-sm" placeholder="用户名" v-model="newUser.name" @keyup.enter="createUser" style="width:140px"></div>
+          <div class="col-auto"><input class="form-control form-control-sm" placeholder="密码" v-model="newUser.pass" @keyup.enter="createUser" style="width:140px"></div>
+          <div class="col-auto"><select class="form-select form-select-sm" v-model="newUser.group" style="width:140px"><option>group-guest</option></select></div>
+          <div class="col-auto"><button class="btn btn-primary btn-sm" @click="createUser"><i class="bi bi-plus-lg"></i> 创建</button></div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead><tr><th>用户名</th><th>分组</th><th>双因素</th><th>MAC 免认证</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="u in users" :key="u.id">
+                <td><strong>{{ u.username }}</strong></td>
+                <td><span class="badge bg-secondary">{{ u.groupname || '-' }}</span></td>
+                <td>
+                  <span v-if="totpStatus[u.username] && totpStatus[u.username].enabled" class="badge bg-success">TOTP</span>
+                  <span v-else class="badge bg-light text-muted">关闭</span>
+                </td>
+                <td><span v-if="u.mac_expiry" class="badge bg-success">至 {{ u.mac_expiry.split(' ')[0] }}</span><span v-else class="text-muted">-</span></td>
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <button v-if="!totpStatus[u.username] || !totpStatus[u.username].enabled" class="btn btn-outline-primary py-0 px-1" @click="enableTotp(u.username)" title="启用 TOTP"><i class="bi bi-shield-check"></i></button>
+                    <button v-if="totpStatus[u.username] && totpStatus[u.username].enabled" class="btn btn-outline-warning py-0 px-1" @click="resetTotp(u.username)" title="重置 TOTP"><i class="bi bi-arrow-repeat"></i></button>
+                    <button class="btn btn-outline-danger py-0 px-1 ms-1" @click="deleteUser(u.username)" title="删除"><i class="bi bi-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab3: QoS 策略 -->
+      <div v-show="activeTab === 'qos'" class="pt-2">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead><tr><th>组</th><th>属性</th><th>当前值</th><th style="width:200px">新值 (bps)</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="q in qosItems" :key="q.id">
+                <td><span class="badge bg-secondary">{{ q.groupname }}</span></td>
+                <td><code>{{ q.attribute }}</code></td>
+                <td><strong>{{ fmtBps(q.value) }} ({{ q.value }})</strong></td>
+                <td><input class="form-control form-control-sm" v-model="q.editVal" placeholder="bps" style="width:130px"></td>
+                <td><button class="btn btn-primary btn-sm" @click="updateQos(q)">保存</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab4: 认证 & MAC 日志 -->
+      <div v-show="activeTab === 'logs'" class="pt-2">
+        <div class="table-responsive" style="max-height:500px;overflow-y:auto">
+          <table class="table table-hover">
+            <thead><tr><th>用户/MAC</th><th>结果</th><th>时间</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="l in mergedLogs" :key="l.key">
+                <td><code>{{ l.name }}</code></td>
+                <td><span :class="l.badgeClass">{{ l.result }}</span></td>
+                <td>{{ l.time }}</td>
+                <td>
+                  <button v-if="l.key.startsWith('m')" class="btn btn-outline-danger btn-sm py-0 px-1" @click="deleteMac(l.name)" title="删除此 MAC 免认证"><i class="bi bi-x-lg"></i></button>
+                  <span v-else class="text-muted">-</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container"><div class="toast align-items-center text-bg-success border-0" ref="toast" role="alert"><div class="d-flex"><div class="toast-body" id="toastMsg"></div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div></div>
+
+  <!-- TOTP QR Modal -->
+  <div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog modal-sm"><div class="modal-content">
+      <div class="modal-header"><h6 class="modal-title">扫描绑定 TOTP</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body text-center">
+        <canvas id="qrCanvas" style="width:200px;height:200px"></canvas>
+        <p class="mt-2 mb-0"><strong id="qrUser"></strong></p>
+        <small class="text-muted" id="qrSecret" style="word-break:break-all"></small>
+        <p class="mt-2 text-muted" style="font-size:12px">使用 Google Authenticator 或 Authy 扫码</p>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@3.4/dist/vue.global.prod.js"></script>
+<script src="qrious.min.js"></script>
+<script>
+const { createApp, ref, reactive, onMounted, computed } = Vue;
+createApp({
+  setup() {
+    const API = 'api.php';
+    const activeTab = ref('online');
+    const stats = ref([
+      { label: '在线用户', value: '-', color: 'text-primary' },
+      { label: '今日认证', value: '-', color: 'text-success' },
+      { label: '已注册MAC', value: '-', color: 'text-warning' },
+      { label: '当前流量', value: '-', color: 'text-info' }
+    ]);
+    const tabs = [
+      { id: 'online', label: '实时在线', icon: 'bi-wifi' },
+      { id: 'users', label: '用户管理', icon: 'bi-people' },
+      { id: 'qos', label: 'QoS 策略', icon: 'bi-gauge' },
+      { id: 'logs', label: '认证日志', icon: 'bi-journal-text' }
+    ];
+    const online = ref([]);
+    const users = ref([]);
+    const qosItems = ref([]);
+    const authLogs = ref([]);
+    const macLogs = ref([]);
+    const newUser = reactive({ name: '', pass: '', group: 'group-guest' });
+    const totpStatus = ref({});
+    let timer = null;
+
+    async function fetchJson(action) {
+      const r = await fetch(API + '?action=' + action);
+      return r.json();
+    }
+    async function postJson(action, data) {
+      const r = await fetch(API + '?action=' + action, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(data) });
+      return r.json();
+    }
+
+    function showMsg(msg) {
+      document.getElementById('toastMsg').textContent = msg;
+      new bootstrap.Toast(document.querySelector('.toast')).show();
+    }
+    function fmtTime(t) { if (!t) return '-'; return new Date(t).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }); }
+    function fmtDuration(s) { if (!s || s == 0) return '-'; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h ? h+'h'+m+'m' : m+'m'; }
+    function fmtBps(v) { const b = parseInt(v); if (!b) return '-'; return b >= 1000000 ? (b/1000000).toFixed(1)+' Mbps' : (b/1000)+' Kbps'; }
+
+    const mergedLogs = computed(() => {
+      const list = [...authLogs.value.map(l => ({
+        key: 'a'+l.id, name: l.username, result: l.reply === 'Access-Accept' ? '通过' : '拒绝',
+        badgeClass: l.reply === 'Access-Accept' ? 'badge-accept badge' : 'badge-reject badge',
+        time: fmtTime(l.authdate)
+      })), ...macLogs.value.map(m => ({
+        key: 'm'+m.id, name: m.mac, result: m.status === 'valid' ? '有效' : '过期',
+        badgeClass: m.status === 'valid' ? 'badge-accept badge' : 'badge-expired badge',
+        time: m.created_at, mac: m.mac
+      }))];
+      return list.sort((a, b) => b.time.localeCompare(a.time)).slice(0, 40);
+    });
+
+    async function loadStats() {
+      const d = await fetchJson('dashboard');
+      stats.value = [
+        { label: '在线用户', value: d.online, color: 'text-primary' },
+        { label: '今日认证', value: d.today_auth, color: 'text-success' },
+        { label: '已注册MAC', value: d.mac_bypass, color: 'text-warning' },
+        { label: '当前流量', value: d.traffic + ' GB', color: 'text-info' }
+      ];
+    }
+
+    async function loadTab(id) {
+      if (id === 'online') online.value = await fetchJson('online');
+      if (id === 'users') users.value = await fetchJson('users');
+      if (id === 'qos') {
+        const q = await fetchJson('qos');
+        q.forEach(x => x.editVal = x.value);
+        qosItems.value = q;
+      }
+      if (id === 'logs') {
+        authLogs.value = await fetchJson('authlog');
+        macLogs.value = await fetchJson('macs');
+      }
+    }
+
+    async function createUser() {
+      if (!newUser.name || !newUser.pass) return showMsg('请填写用户名和密码');
+      const r = await postJson('create_user', { username: newUser.name, password: newUser.pass, group: newUser.group });
+      showMsg(r.ok ? r.msg : r.msg);
+      if (r.ok) { newUser.name = ''; newUser.pass = ''; loadTab('users'); }
+    }
+    async function deleteUser(uname) {
+      if (!confirm('确认删除用户 ' + uname + '？')) return;
+      const r = await postJson('delete_user', { username: uname });
+      if (r.ok) { showMsg('已删除'); loadTab('users'); }
+    }
+    async function updateQos(q) {
+      const r = await postJson('update_qos', { id: q.id, value: q.editVal });
+      showMsg(r.ok ? '已更新' : '更新失败');
+      if (r.ok) loadTab('qos');
+    }
+
+    async function deleteMac(mac) {
+      if (!confirm('确认移除 MAC ' + mac + ' 的免认证？')) return;
+      const r = await postJson('mac_delete', { mac: mac });
+      if (r.ok) { showMsg('已移除'); loadTab('logs'); } else showMsg('移除失败');
+    }
+
+    // ── TOTP ──
+    async function enableTotp(uname) {
+      const r = await postJson('totp_enable', { username: uname });
+      if (!r.ok) return showMsg('启用失败: ' + r.msg);
+      loadTotpStatus();
+      // Show QR code
+      const otpauth = 'otpauth://totp/QCC-Network:' + encodeURIComponent(uname) + '?secret=' + r.secret + '&issuer=QCC-Network';
+      document.getElementById('qrUser').textContent = uname;
+      document.getElementById('qrSecret').textContent = r.secret;
+      drawQR(otpauth);
+      new bootstrap.Modal(document.getElementById('qrModal')).show();
+      showMsg('TOTP 已启用，请扫码绑定');
+    }
+    async function resetTotp(uname) {
+      if (!confirm('确认重置 ' + uname + ' 的 TOTP？旧码将失效。')) return;
+      const r = await postJson('totp_reset', { username: uname });
+      if (r.ok) { loadTotpStatus(); showMsg('已重置'); }
+    }
+    async function loadTotpStatus() {
+      totpStatus.value = await fetchJson('totp_status');
+    }
+    function drawQR(text) {
+      new QRious({
+        element: document.getElementById('qrCanvas'),
+        value: text,
+        size: 200,
+        background: '#ffffff',
+        foreground: '#000000',
+        level: 'M'
+      });
+    }
+
+    onMounted(() => {
+      loadStats();
+      loadTab('online');
+      loadTotpStatus();
+      timer = setInterval(() => { loadStats(); loadTab(activeTab.value); }, 30000);
+    });
+    // Stop timer on unmount
+    window.addEventListener('beforeunload', () => clearInterval(timer));
+
+    return { activeTab, stats, tabs, online, users, qosItems, mergedLogs, newUser, totpStatus, createUser, deleteUser, deleteMac, updateQos, enableTotp, resetTotp, loadTab, fmtTime, fmtDuration, fmtBps };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

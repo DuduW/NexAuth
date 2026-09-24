@@ -1,0 +1,443 @@
+/* ═══════════════════════════════════════════════════════════
+   Enterprise Formal UI — Carbon Design 风格层
+   依据: docs/PRD-商业正式风设计模版.md (v1.0)
+   原则: 类名契约完全兼容旧页面（panel/badge/btn/stat-card...）
+        0px 直角 · 冷灰 · IBM Plex · 深色侧栏 Shell
+   ═══════════════════════════════════════════════════════════ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* ── 色彩（Carbon 官方 tokens） ── */
+  --blue: #0f62fe;            /* 主交互蓝（interactive）*/
+  --blue-hover: #0353e9;
+  --link: #0043ce;
+  --green: #24a148;           /* success */
+  --red: #da1e28;             /* danger */
+  --orange: #ee5396;          /* 品红替代（Carbon magenta-ish for accent）*/
+  --warn: #8a6d00;            /* warning 文字（浅色下）*/
+  --warn-dot: #f1c21b;
+  --dark: #161616;            /* text-primary */
+  --gray: #525252;            /* text-secondary */
+  --muted: #6f6f6f;           /* text-placeholder/辅助 */
+  --border: #e0e0e0;          /* border-subtle */
+  --border-strong: #8d8d8d;
+  --bg-light: #f4f4f4;        /* layer-01 页面底 */
+  --bg-title: #f4f4f4;        /* panel-header 底 */
+  --bg-hover: #e8e8e8;
+  --layer: #ffffff;           /* layer-02 容器 */
+  --ok-bg: #defbe6;
+  --err-bg: #fff1f1;
+  --warn-bg: #fff8d1;
+  --info-bg: #edf5ff;
+
+  /* ── 字体 ── */
+  --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+
+  /* ── 几何 ── */
+  --radius: 0px;              /* Carbon：全直角 */
+  --radius-tag: 4px;          /* 仅 Tag 4px */
+  --sidebar-w: 240px;
+  --topbar-h: 48px;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--dark);
+  background: var(--bg-light);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══ UI Shell：顶栏 + 侧栏 + 主区 ═══ */
+.container { display: flex; min-height: 100vh; }
+
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--topbar-h);
+  background: var(--layer); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px; gap: 16px; z-index: 1200;
+}
+.topbar .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; color: var(--dark); white-space: nowrap; }
+.topbar .brand .logo { width: 28px; height: 28px; background: var(--blue); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 13px; font-weight: 600; border-radius: var(--radius); }
+.topbar-bc { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--link); overflow: hidden; }
+.topbar-bc .sep { color: var(--muted); user-select: none; }
+.topbar-bc .cur { color: var(--dark); font-weight: 600; white-space: nowrap; }
+.topbar .spacer { flex: 1; }
+.env-tag { font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border: 1px solid var(--red); color: var(--red); font-weight: 600; letter-spacing: .04em; white-space: nowrap; border-radius: var(--radius); }
+.topbar-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gray); white-space: nowrap; }
+.topbar-user .avatar { width: 26px; height: 26px; background: #c6c6c6; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #161616; border-radius: var(--radius); }
+
+.sidebar {
+  position: fixed; top: var(--topbar-h); left: 0; bottom: 0; width: var(--sidebar-w);
+  background: #161616; padding: 0 0 16px; overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.sidebar::-webkit-scrollbar { width: 8px; } .sidebar::-webkit-scrollbar-thumb { background: #393939; }
+.sidebar h3 { font-size: 13px; font-weight: 700; letter-spacing: .06em; color: #f4f4f4; padding: 16px 16px 6px; }
+.sidebar h3:first-child { padding-top: 16px; }
+.sidebar-item {
+  display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 16px;
+  font-size: 14px; color: #c6c6c6; text-decoration: none;
+  border-left: 3px solid transparent; transition: background .1s;
+}
+.sidebar-item:hover { background: #353535; color: #fff; }
+.sidebar-item.active { background: var(--blue); color: #fff; font-weight: 600; border-left-color: #fff; }
+.sidebar-item .dot { display: none; }  /* Carbon 风：去彩点，用色条表达 */
+.sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid #393939; }
+.sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px; color: #c6c6c6; }
+.sidebar-user .avatar { width: 28px; height: 28px; background: #393939; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; border-radius: var(--radius); flex-shrink: 0; }
+
+/* 主内容区（顶栏下方偏移） */
+.main { flex: 1; margin-left: var(--sidebar-w); padding: calc(var(--topbar-h) + 24px) 32px 48px; min-width: 0; max-width: none; }
+
+/* ═══ 页头 ═══ */
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-size: 28px; font-weight: 400; line-height: 36px; letter-spacing: 0; }
+.page-header .sub { font-size: 12px; color: var(--gray); margin-top: 4px; }
+
+/* ═══ 面板（Tile：白底 + 1px 边框 + 直角） ═══ */
+.panel { background: var(--layer); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; background: var(--layer); border-bottom: 1px solid var(--border);
+}
+.panel-header h4 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.panel-body { padding: 16px; }
+
+/* ═══ 表格（Carbon 44px 行高） ═══ */
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th {
+  text-align: left; height: 40px; padding: 0 14px;
+  font-size: 12px; font-weight: 600; color: var(--gray);
+  text-transform: none; letter-spacing: .01em;
+  background: var(--layer); border-bottom: 1px solid var(--border-strong); white-space: nowrap;
+}
+th.num, td.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 13px; }
+td { height: 44px; padding: 0 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tbody tr:hover td { background: var(--bg-hover); }
+tbody tr:last-child td { border-bottom: none; }
+td code { background: var(--bg-light); padding: 2px 6px; font-size: 12px; font-family: var(--font-mono); color: var(--dark); border-radius: var(--radius); }
+
+/* ═══ Badge → Carbon Tag（4px 圆角 + 前置色点） ═══ */
+.badge { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: var(--radius-tag); font-size: 12px; font-weight: 400; white-space: nowrap; background: #e0e0e0; color: var(--dark); }
+.badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .85; flex-shrink: 0; }
+.badge-success { background: var(--ok-bg); color: #0e6027; }
+.badge-danger  { background: var(--err-bg); color: var(--red); }
+.badge-warning { background: var(--warn-bg); color: var(--warn); }
+.badge-blue    { background: var(--info-bg); color: var(--link); }
+.badge-default { background: #e0e0e0; color: var(--gray); }
+.badge-violet  { background: #e8daff; color: #6929c4; }
+
+/* ═══ 按钮（Carbon：直角 · 40px · 32px sm） ═══ */
+.btn { height: 40px; padding: 0 14px; font-family: var(--font-sans); font-size: 14px; font-weight: 400; cursor: pointer; border-radius: var(--radius); display: inline-flex; align-items: center; gap: 8px; transition: background .1s; white-space: nowrap; }
+.btn-primary { background: var(--blue); color: #fff; border: 1px solid transparent; }
+.btn-primary:hover { background: var(--blue-hover); }
+.btn-danger { background: var(--layer); color: var(--red); border: 1px solid var(--red); }
+.btn-danger:hover { background: var(--err-bg); }
+.btn-outline { background: var(--layer); color: var(--dark); border: 1px solid transparent; box-shadow: inset 0 0 0 1px var(--border-strong); }
+.btn-outline:hover { background: var(--bg-hover); }
+.btn-sm { height: 32px; font-size: 13px; padding: 0 12px; }
+.btn-danger-solid { background: var(--red); color: #fff; border: none; }
+.btn-danger-solid:disabled { background: #a2191f; cursor: not-allowed; }
+
+/* ═══ 表单 ═══ */
+.input-wrap { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.input-wrap input, .input-wrap select { height: 40px; padding: 0 12px; border: none; box-shadow: inset 0 0 0 1px var(--border-strong); font-size: 14px; font-family: var(--font-sans); background: var(--layer); color: var(--dark); border-radius: var(--radius); }
+.input-wrap input:focus, .input-wrap select:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+input[type="text"], input[type="search"] { height: 32px; padding: 0 10px; border: none; box-shadow: inset 0 0 0 1px var(--border-strong); font-size: 13px; font-family: var(--font-sans); background: var(--layer); color: var(--dark); border-radius: var(--radius); }
+input[type="text"]:focus, input[type="search"]:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+.filters { display: flex; align-items: center; gap: 8px; padding: 0 16px 12px; flex-wrap: wrap; }
+.filters select, .filters input { height: 32px; border: none; box-shadow: inset 0 0 0 1px var(--border-strong); padding: 0 10px; font-size: 13px; background: var(--layer); color: var(--dark); border-radius: var(--radius); }
+.filters input { width: 220px; }
+
+/* chip → Carbon Tag 可交互形态 */
+.fchip { border: none; box-shadow: inset 0 0 0 1px var(--border-strong); background: var(--layer); color: var(--gray); padding: 0 12px; height: 32px; display: inline-flex; align-items: center; font-size: 13px; cursor: pointer; user-select: none; border-radius: var(--radius-tag); }
+.fchip.on { background: var(--dark); color: #fff; box-shadow: none; font-weight: 500; }
+
+/* ═══ KPI 统计卡（Tile） ═══ */
+.stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: var(--layer); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; transition: none; }
+.stat-card:hover { transform: none; border-color: var(--border-strong); }
+.stat-card .label { font-size: 12px; color: var(--gray); font-weight: 400; text-transform: none; letter-spacing: .02em; }
+.stat-card .value { font-family: var(--font-mono); font-size: 28px; font-weight: 600; margin-top: 8px; line-height: 34px; font-variant-numeric: tabular-nums; }
+
+/* ═══ 其他 ═══ */
+.empty { text-align: center; color: var(--muted); padding: 32px 0; font-size: 13px; }
+.mut { font-size: 12px; color: var(--muted); }
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top: 2px solid var(--blue); border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══ Toast（保持类名，Carbon 化外观） ═══ */
+.toast-host { position: fixed; top: calc(var(--topbar-h) + 16px); right: 16px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; max-width: 380px; }
+.toast { display: flex; align-items: flex-start; gap: 8px; padding: 12px 16px; background: var(--layer); border: 1px solid var(--border); border-left: 3px solid var(--blue); font-size: 14px; line-height: 1.5; cursor: pointer; word-break: break-all; box-shadow: 0 2px 8px rgba(22,22,22,.12); border-radius: var(--radius); }
+.toast-icon { flex-shrink: 0; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; color: var(--blue); margin-top: 1px; }
+.toast-success { border-left-color: var(--green); } .toast-success .toast-icon { color: var(--green); }
+.toast-error { border-left-color: var(--red); } .toast-error .toast-icon { color: var(--red); }
+.toast-info { border-left-color: var(--blue); } .toast-info .toast-icon { color: var(--blue); }
+
+/* ═══ Modal（Carbon 化） ═══ */
+.modal-overlay { position: fixed; inset: 0; background: rgba(22,22,22,.5); display: flex; align-items: center; justify-content: center; z-index: 2000; animation: toastIn .15s ease; }
+.modal-box { background: var(--layer); border-radius: var(--radius); padding: 0; width: 90%; max-width: 560px; box-shadow: 0 24px 60px rgba(0,0,0,.4); }
+.modal-title { font-size: 16px; font-weight: 600; padding: 16px 24px 0; }
+.modal-msg { font-size: 14px; color: var(--gray); line-height: 1.6; word-break: break-all; padding: 8px 24px 0; }
+.modal-keyword { margin-top: 10px; }
+.modal-input { width: 100%; height: 40px; padding: 0 12px; border: none; box-shadow: inset 0 0 0 1px var(--border-strong); font-size: 14px; font-family: var(--font-sans); margin-top: 4px; background: var(--layer); color: var(--dark); border-radius: var(--radius); }
+.modal-fields { display: flex; flex-direction: column; gap: 12px; margin: 14px 24px 4px; }
+.modal-field { display: flex; flex-direction: column; gap: 4px; }
+.modal-field-label { font-size: 12px; color: var(--gray); font-weight: 400; }
+.modal-field-hint { font-size: 12px; color: var(--muted); }
+.modal-field-error { font-size: 12px; color: var(--red); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin: 20px 24px 20px; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* ═══ 深色模式（Carbon g90/g100） ═══ */
+.dark {
+  background: #161616; color: #f4f4f4;
+  --dark: #f4f4f4; --gray: #c6c6c6; --muted: #a8a8a8;
+  --border: #393939; --border-strong: #6f6f6f;
+  --bg-light: #161616; --bg-title: #212121; --bg-hover: #383838;
+  --layer: #212121;
+  --blue: #78a9ff; --blue-hover: #a6c8ff; --link: #78a9ff;
+  --green: #42be65; --red: #ff8389; --warn: #f1c21b;
+  --ok-bg: #173f2b; --err-bg: #3a1d1f; --warn-bg: #373219; --info-bg: #10264a;
+}
+.dark .sidebar { background: #000; }
+.dark .sidebar-item { color: #c6c6c6; }
+.dark .sidebar-item:hover { background: #353535; color: #fff; }
+.dark .sidebar-item.active { background: #0f62fe; color: #fff; border-left-color: #fff; }
+.dark .sidebar h3 { color: #f4f4f4; }
+.dark .sidebar-footer { border-color: #393939; }
+.dark .sidebar-user { color: #c6c6c6; }
+.dark .topbar { background: #212121; border-color: #393939; }
+.dark .topbar .brand { color: #f4f4f4; }
+.dark .topbar-bc .cur { color: #f4f4f4; }
+.dark .topbar-user { color: #c6c6c6; }
+.dark .topbar-user .avatar { background: #393939; color: #fff; }
+.dark .env-tag { border-color: #ff8389; color: #ff8389; }
+.dark .fchip { background: #212121; color: #c6c6c6; box-shadow: inset 0 0 0 1px #6f6f6f; }
+.dark .fchip.on { background: #f4f4f4; color: #161616; }
+.dark .badge { background: #393939; color: #f4f4f4; }
+.dark .badge-success { background: #173f2b; color: #42be65; }
+.dark .badge-danger { background: #3a1d1f; color: #ff8389; }
+.dark .badge-warning { background: #373219; color: #f1c21b; }
+.dark .badge-blue { background: #10264a; color: #78a9ff; }
+.dark .badge-default { background: #393939; color: #c6c6c6; }
+.dark .badge-violet { background: #2a2136; color: #d7b9ff; }
+.dark .btn-outline { background: #212121; color: #f4f4f4; box-shadow: inset 0 0 0 1px #6f6f6f; }
+.dark .btn-outline:hover { background: #383838; }
+.dark .btn-danger { background: #212121; color: #ff8389; border-color: #ff8389; }
+.dark .btn-primary { background: #0f62fe; color: #fff; }
+.dark th { background: #212121; }
+.dark td code { background: #393939; color: #f4f4f4; }
+.dark .toast { background: #212121; border-color: #393939; color: #f4f4f4; }
+.dark .modal-box { background: #212121; color: #f4f4f4; }
+.dark .modal-input { background: #161616; color: #f4f4f4; }
+.dark .stat-card { background: #212121; border-color: #393939; }
+
+/* ═══ 折叠面板指示（CollapsePanel 内联样式已旋转箭头，无需覆盖） ═══ */
+
+/* ═══ IP 资产管理页补充 ═══ */
+.ipgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.ipcell { padding: 8px; border: 1px solid var(--border); font-family: var(--font-mmono); font-family: var(--font-mono); font-size: 12px; color: var(--gray); border-radius: var(--radius); }
+
+/* 滚动条 Carbon 化 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ═══════════════════════════════════════════════════════════
+   风格层：Ant Design 企业中后台风（body.style-ant）
+   依据: Ant Design 5.x 设计语言 · 圆角 6 · #1677ff · PingFang 体系
+   原则: 只覆盖 tokens + 少量组件形态，类名契约不变
+   ═══════════════════════════════════════════════════════════ */
+.style-ant {
+  /* 色彩 tokens：Ant Design 5 官方（亮蓝 + 暖中灰，与 Carbon 冷灰拉开） */
+  --blue: #1677ff;            /* daybreak 蓝（比 Carbon 亮、偏天蓝） */
+  --blue-hover: #4096ff;
+  --link: #1677ff;
+  --green: #52c41a;
+  --red: #ff4d4f;
+  --orange: #fa8c16;
+  --warn: #d48806;
+  --warn-dot: #faad14;
+  --dark: rgba(0,0,0,.88);
+  --gray: rgba(0,0,0,.65);
+  --muted: rgba(0,0,0,.45);
+  --border: #d9d9d9;
+  --border-strong: #8c8c8c;
+  --bg-light: #f0f2f5;        /* Ant 经典灰底（更灰一点，与 Carbon #f4f4f4 区分） */
+  --bg-title: #fafafa;
+  --bg-hover: rgba(0,0,0,.04);
+  --layer: #ffffff;
+  --ok-bg: #f6ffed;
+  --err-bg: #fff2f0;
+  --warn-bg: #fffbe6;
+  --info-bg: #e6f4ff;
+  /* 字体：Ant 默认栈（-apple-system 优先，PingFang SC 中文字体） */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", "Courier New", monospace;
+  /* 几何：Ant 圆角体系 */
+  --radius: 6px;
+  --radius-tag: 4px;
+  /* 微投影（Ant 卡片 elevation） */
+  --card-shadow: 0 1px 2px rgba(0,0,0,.03), 0 1px 6px -1px rgba(0,0,0,.02), 0 2px 4px rgba(0,0,0,.02);
+  /* Ant 专属 accent：亮蓝渐变顶条，一眼区分 */
+  --accent-bar: linear-gradient(90deg, #1677ff, #4096ff);
+}
+.style-ant .panel { box-shadow: var(--card-shadow); }
+.style-ant .panel-header h4 { font-weight: 600; }
+.style-ant .page-header h1 { font-weight: 600; font-size: 22px; line-height: 30px; }
+.style-ant .topbar { border-top: 3px solid transparent; border-image: var(--accent-bar) 1; }
+.style-ant .btn { font-weight: 400; }
+.style-ant .btn-primary { box-shadow: 0 2px 0 rgba(5,145,255,.1); }
+.style-ant .sidebar { background: #001529; }        /* Ant 深蓝黑侧栏 */
+.style-ant .sidebar h3 { color: rgba(255,255,255,.95); }
+.style-ant .sidebar-item { color: rgba(255,255,255,.65); border-left: none; }
+.style-ant .sidebar-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.style-ant .sidebar-item.active { background: #1677ff; color: #fff; border-left-color: transparent; }
+.style-ant .sidebar-footer { border-color: rgba(255,255,255,.12); }
+.style-ant .sidebar-user { color: rgba(255,255,255,.65); }
+.style-ant .topbar { background: #fff; }
+.style-ant .topbar .brand .logo { background: #1677ff; }
+.style-ant .stat-card { box-shadow: var(--card-shadow); }
+.style-ant th { background: #fafafa; color: rgba(0,0,0,.88); font-weight: 600; }
+.style-ant td code { background: rgba(0,0,0,.04); color: rgba(0,0,0,.88); }
+.style-ant .badge { border-radius: 4px; font-weight: 400; }
+.style-ant .badge-success { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+.style-ant .badge-danger { background: #fff2f0; color: #cf1322; border: 1px solid #ffccc7; }
+.style-ant .badge-warning { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
+.style-ant .badge-blue { background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; }
+.style-ant .badge-default { background: #fafafa; color: rgba(0,0,0,.65); border: 1px solid #d9d9d9; }
+.style-ant .badge-violet { background: #f9f0ff; color: #722ed1; border: 1px solid #d3adf7; }
+/* Ant 风格 + 暗色组合 */
+.style-ant.dark {
+  --dark: rgba(255,255,255,.85); --gray: rgba(255,255,255,.65); --muted: rgba(255,255,255,.45);
+  --border: #424242; --border-strong: #616161;
+  --bg-light: #141414; --bg-title: #1f1f1f; --bg-hover: rgba(255,255,255,.08);
+  --layer: #1f1f1f;
+  --blue: #1668dc; --blue-hover: #3c89e8; --link: #1668dc;
+  --green: #49aa19; --red: #dc4446; --warn: #d89614; --warn-dot: #d89614;
+  --ok-bg: #16261a; --err-bg: #2a1215; --warn-bg: #291f0d; --info-bg: #111a2c;
+}
+.style-ant.dark .sidebar { background: #000c17; }
+.style-ant.dark th { background: #1f1f1f; }
+.style-ant.dark td code { background: #2a2a2a; color: rgba(255,255,255,.85); }
+.style-ant.dark .badge-success { background: #16261a; color: #49aa19; border-color: #274916; }
+.style-ant.dark .badge-danger { background: #2a1215; color: #dc4446; border-color: #58181c; }
+.style-ant.dark .badge-warning { background: #291f0d; color: #d89614; border-color: #594214; }
+.style-ant.dark .badge-blue { background: #111a2c; color: #3c89e8; border-color: #15325b; }
+.style-ant.dark .badge-default { background: #2a2a2a; color: rgba(255,255,255,.65); border-color: #424242; }
+.style-ant.dark .badge-violet { background: #211d2f; color: #a78bfa; border-color: #3c2f5b; }
+
+/* ═══════════════════════════════════════════════════════════
+   风格层：Apple 轻盈风（body.style-apple）
+   依据: 项目既有 Apple/iOS 设计语言（NetAgent/admin-spa 早期）
+        浅灰 #f5f5f7 底 + 白卡片 + 14~16px 大圆角 + 深海军蓝 #0b3d62 主色
+        标题 Noto Serif SC 衬线 / 正文 Noto Sans SC（回退 PingFang SC）
+   原则: 只覆盖 tokens + 少量组件形态，类名契约不变
+   ═══════════════════════════════════════════════════════════ */
+.style-apple {
+  --blue: #0b3d62;            /* 深海军蓝主色（项目 Apple 风传统主色） */
+  --blue-hover: #145284;
+  --link: #0b3d62;
+  --green: #34c759;           /* iOS system green */
+  --red: #ff3b30;             /* iOS system red */
+  --orange: #ff9500;
+  --warn: #c77700;
+  --warn-dot: #ffcc00;
+  --dark: #1d1d1f;            /* Apple 近黑文字 */
+  --gray: #6e6e73;            /* Apple 次级文字 */
+  --muted: #86868b;
+  --border: #e8e8ed;
+  --border-strong: #c7c7cc;
+  --bg-light: #f2f4f7;        /* 略偏冷蓝灰（与 Ant 暖灰 f0f2f5 相反方向拉开） */
+  --bg-title: #f9f9fb;
+  --bg-hover: rgba(11,61,98,.06);
+  --layer: #ffffff;
+  --ok-bg: #eef9f0;
+  --err-bg: #fff0ef;
+  --warn-bg: #fff9e6;
+  --info-bg: #eef4fb;
+  --font-sans: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius: 14px;             /* 大圆角卡片 */
+  --radius-tag: 9px;
+  --card-shadow: 0 1px 3px rgba(0,0,0,.04), 0 6px 18px rgba(0,0,0,.05);
+  /* Apple 专属 accent：海军蓝渐变顶条，与 Ant 亮蓝渐变明显区分 */
+  --accent-bar: linear-gradient(90deg, #0b3d62, #3a7ca5);
+}
+.style-apple body, body.style-apple {
+  background: var(--bg-light);
+  -webkit-font-smoothing: antialiased;
+}
+body.style-apple .page-header h1 {
+  font-family: "Noto Serif SC", Georgia, "Songti SC", serif;  /* 标题衬线 */
+  font-size: 24px; font-weight: 700; letter-spacing: .01em;
+}
+body.style-apple .panel { border: none; box-shadow: var(--card-shadow); }
+body.style-apple .panel-header { background: transparent; border-bottom: 1px solid var(--border); }
+body.style-apple .panel-header h4 { font-weight: 600; }
+body.style-apple .btn { border-radius: var(--radius-tag); font-weight: 500; }
+body.style-apple .btn-primary { background: var(--blue); box-shadow: 0 2px 8px rgba(11,61,98,.25); }
+body.style-apple .btn-primary:hover { background: var(--blue-hover); }
+body.style-apple .btn-outline { box-shadow: none; border: 1px solid var(--border-strong); }
+body.style-apple .stat-card { border: none; box-shadow: var(--card-shadow); border-radius: var(--radius); }
+/* Apple 风：浅色毛玻璃侧栏（三风格中唯一浅侧栏，形态级区分） */
+body.style-apple .sidebar {
+  background: rgba(242,244,247,.86); backdrop-filter: blur(16px);
+  border-right: 1px solid var(--border);
+}
+body.style-apple .sidebar h3 { color: var(--dark); }
+body.style-apple .sidebar-item { border-left: none; border-radius: 9px; margin: 2px 10px; color: var(--gray); }
+body.style-apple .sidebar-item:hover { background: rgba(11,61,98,.07); color: var(--dark); }
+body.style-apple .sidebar-item.active { background: var(--blue); color: #fff; border-radius: 9px; }
+body.style-apple .sidebar-footer { border-color: var(--border); }
+body.style-apple .sidebar-user { color: var(--gray); }
+body.style-apple .sidebar-user .avatar { background: var(--blue); }
+body.style-apple .sidebar .logout-btn, body.style-apple .sidebar button { background: transparent; border-color: var(--border-strong); color: var(--gray); }
+body.style-apple .topbar {
+  background: rgba(255,255,255,.82); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
+  border-top: 3px solid transparent; border-image: var(--accent-bar) 1;
+}
+body.style-apple .topbar .brand .logo { border-radius: 8px; }
+body.style-apple th { background: var(--bg-title); font-weight: 600; color: var(--dark); }
+body.style-apple td code { background: rgba(0,0,0,.045); color: var(--blue); }
+body.style-apple .badge { border-radius: var(--radius-tag); font-weight: 500; }
+body.style-apple .badge-success { background: var(--ok-bg); color: #1e7e34; }
+body.style-apple .badge-danger { background: var(--err-bg); color: #d70015; }
+body.style-apple .badge-warning { background: var(--warn-bg); color: #c77700; }
+body.style-apple .badge-blue { background: var(--info-bg); color: var(--blue); }
+body.style-apple .badge-default { background: rgba(0,0,0,.05); color: var(--gray); }
+body.style-apple .badge-violet { background: #f3effc; color: #5e48b8; }
+body.style-apple .modal-box { border-radius: var(--radius); box-shadow: 0 12px 40px rgba(0,0,0,.18); }
+body.style-apple .toast { border-radius: var(--radius-tag); box-shadow: var(--card-shadow); }
+body.style-apple input, body.style-apple select {
+  border-radius: var(--radius-tag);
+}
+/* Apple 风 + 暗色组合（iOS 深色模式配色） */
+body.style-apple.dark {
+  --dark: #f5f5f7; --gray: #a1a1a6; --muted: #86868b;
+  --border: #333336; --border-strong: #48484a;
+  --bg-light: #000000; --bg-title: #1c1c1e; --bg-hover: rgba(255,255,255,.08);
+  --layer: #1c1c1e;
+  --blue: #6fa8dc; --blue-hover: #8db8e6; --link: #6fa8dc;
+  --green: #30d158; --red: #ff453a; --warn: #ffd60a; --warn-dot: #ffd60a;
+  --ok-bg: #0c2612; --err-bg: #2c0f0e; --warn-bg: #2a2310; --info-bg: #0e1c2e;
+}
+body.style-apple.dark .panel { box-shadow: 0 1px 3px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3); }
+body.style-apple.dark .topbar { background: rgba(28,28,30,.85); border-image: linear-gradient(90deg, #6fa8dc, #8db8e6) 1; }
+body.style-apple.dark .sidebar { background: rgba(10,10,12,.92); border-color: #333336; }
+body.style-apple.dark .sidebar h3 { color: #f5f5f7; }
+body.style-apple.dark .sidebar-item { color: #a1a1a6; }
+body.style-apple.dark .sidebar-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+body.style-apple.dark .sidebar-item.active { background: #3a7ca5; color: #fff; }
+body.style-apple.dark .sidebar-footer { border-color: #333336; }
+body.style-apple.dark .sidebar-user { color: #a1a1a6; }
+body.style-apple.dark th { background: #26262a; }
+body.style-apple.dark td code { background: #2c2c2e; color: #8db8e6; }
+body.style-apple.dark .badge-success { background: #0c2612; color: #30d158; }
+body.style-apple.dark .badge-danger { background: #2c0f0e; color: #ff453a; }
+body.style-apple.dark .badge-warning { background: #2a2310; color: #ffd60a; }
+body.style-apple.dark .badge-blue { background: #0e1c2e; color: #6fa8dc; }
+body.style-apple.dark .badge-default { background: #2c2c2e; color: #a1a1a6; }
+body.style-apple.dark .badge-violet { background: #221f33; color: #a99ad6; }

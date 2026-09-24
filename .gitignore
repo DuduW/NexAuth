@@ -1,0 +1,45 @@
+.workbuddy/
+*.pyc
+__pycache__/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# 构建缓存/垃圾/临时
+.go-cache*/
+.go-modcache/
+build-cache/
+tmp*/
+client/
+scripts/
+backup/
+winres/
+db/
+tmp_*.py
+*.tmp
+node_modules/
+.cache/
+
+# 敏感：部署包与物料（含证书骨架/种子库/生产配置）
+dist/
+deploy-pkg/payload/
+
+# 运维脚本与临时产物（含内网 IP/密码的取证脚本）
+tools/
+
+# 前端构建产物与依赖
+src/frontend/node_modules/
+src/frontend/dist/
+
+# 备份/临时
+*.bak
+*.bak-full
+*.log
+
+# 二进制与压缩产物
+*.exe
+*.tar.gz
+*.zip
+*.key
+*.pem

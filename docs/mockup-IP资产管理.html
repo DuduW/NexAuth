@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>页面设计稿 — IP · 资产管理（IPv4 / IPv6）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f5f5f7; font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+         font-size: 13px; color: #1f2430; display: flex; min-height: 100vh; }
+  /* ---------- 侧边栏 ---------- */
+  .sidebar { width: 190px; background: #fff; border-right: 1px solid #e2e7f0;
+             padding: 16px 10px; flex-shrink: 0; }
+  .sidebar .logo { font-size: 15px; font-weight: 700; padding: 4px 10px 12px; display: block; }
+  .sidebar h3 { font-size: 11px; letter-spacing: .08em; color: #8b94a6; text-transform: uppercase;
+                margin: 14px 0 6px 10px; font-weight: 600; }
+  .sitem { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px;
+           color: #4b5563; cursor: pointer; margin-bottom: 2px; }
+  .sitem .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .sitem.active { background: #eef2fb; color: #1450C8; font-weight: 600; }
+  /* ---------- 主区 ---------- */
+  .main { flex: 1; padding: 20px 24px; max-width: 1240px; }
+  .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  h1 { font-size: 20px; font-weight: 700; }
+  .sub { font-size: 12px; color: #8b94a6; margin-top: 4px; }
+  .btn { border: none; border-radius: 9px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
+  .btn-primary { background: #1450C8; color: #fff; }
+  .btn-outline { background: #fff; color: #1450C8; border: 1px solid #b9cef1; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 7px; }
+  .link-btn { background: none; border: none; color: #1450C8; font-size: 12px; cursor: pointer;
+              padding: 2px 4px; border-radius: 6px; }
+  .link-btn:hover { background: #eef2fb; }
+  .link-btn.danger { color: #c23c34; }
+  .link-btn.muted { color: #8b94a6; }
+  /* 统计卡 */
+  .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: #fff; border-radius: 16px; padding: 14px 18px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  .stat-card .label { font-size: 12px; color: #8b94a6; font-weight: 600; text-transform: uppercase; }
+  .stat-card .value { font-size: 26px; font-weight: 700; margin-top: 4px; }
+  .stat-card .value small { font-size: 15px; color: #8b94a6; font-weight: 400; margin-left: 4px; }
+  /* 面板 */
+  .panel { background: #fff; border-radius: 16px; box-shadow: 0 1px 2px rgba(16,24,40,.04);
+           margin-bottom: 16px; overflow: hidden; }
+  .panel-header { display: flex; justify-content: space-between; align-items: center;
+                  padding: 14px 18px 10px; }
+  .panel-header h4 { font-size: 14px; font-weight: 600; }
+  /* 筛选条 */
+  .filters { display: flex; align-items: center; gap: 8px; padding: 0 18px 12px; flex-wrap: wrap; }
+  .filters select, .filters input { border: 1px solid #d8deea; border-radius: 8px; padding: 6px 10px;
+    font-size: 12px; background: #fff; color: #1f2430; }
+  .filters input { width: 210px; }
+  .fchip { border: 1px solid #d8deea; background: #fff; color: #4b5563; border-radius: 999px;
+           padding: 4px 11px; font-size: 12px; cursor: pointer; }
+  .fchip.on { background: #eef2fb; border-color: #1450C8; color: #1450C8; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; font-weight: 600; color: #8b94a6; text-transform: uppercase;
+       padding: 10px 14px; background: #f8fafc; border-bottom: 1px solid #e2e7f0; white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f0f2f6; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  code { background: #f1f4f9; border-radius: 5px; padding: 2px 6px; font-size: 12px;
+         font-family: monospace; color: #4b5563; }
+  code.muted { color: #b3bac7; }
+  .mut { font-size: 12px; color: #8b94a6; }
+  .badge { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .badge-success { background: #e4f7ee; color: #188a5b; }
+  .badge-warning { background: #fff1e0; color: #b45e13; }
+  .badge-danger  { background: #fdeceb; color: #c23c34; }
+  .badge-blue    { background: #eef2fb; color: #1450C8; }
+  .badge-violet  { background: #f1edfc; color: #6d4fd0; }
+  .badge-default { background: #eef1f6; color: #6b7488; }
+  .ops { white-space: nowrap; }
+  /* 利用率条 */
+  .util { min-width: 150px; }
+  .util-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: #edf0f5; }
+  .util-bar .used { background: #1450C8; }
+  .util-bar .rsv  { background: #f0a232; }
+  .util-legend { font-size: 11px; color: #8b94a6; margin-top: 4px; white-space: nowrap; }
+  /* 设计标注 */
+  .anno { background: #fffbe8; border: 1px dashed #d9b64a; border-radius: 10px;
+          padding: 8px 12px; font-size: 12px; color: #8a6d1a; margin: 10px 0 16px; line-height: 1.7; }
+  .legend { font-size: 12px; color: #8b94a6; margin: 4px 0 20px; }
+  .pagenum { display: flex; gap: 6px; justify-content: flex-end; padding: 12px 18px; }
+  .pagenum span { border: 1px solid #d8deea; border-radius: 7px; padding: 3px 9px; font-size: 12px; color: #4b5563; cursor: pointer; }
+  .pagenum span.on { background: #1450C8; color: #fff; border-color: #1450C8; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <span class="logo">Radius Admin</span>
+  <h3>首页</h3>
+  <div class="sitem"><span class="dot" style="background:#2BBD7E"></span>仪表盘</div>
+  <h3>网络资产</h3>
+  <div class="sitem active"><span class="dot" style="background:#2BBD7E"></span>网段管理</div>
+  <div class="sitem"><span class="dot" style="background:#9B7FDB"></span>地址台账</div>
+  <div class="sitem"><span class="dot" style="background:#E8684A"></span>公网资产</div>
+  <h3>交换机管理</h3>
+  <div class="sitem"><span class="dot" style="background:#0EA5E9"></span>设备管理</div>
+  <div class="sitem"><span class="dot" style="background:#7F77DD"></span>备份与还原</div>
+  <div class="sitem"><span class="dot" style="background:#F59E0B"></span>在线分析</div>
+  <div class="sitem"><span class="dot" style="background:#1450C8"></span>定时任务</div>
+</aside>
+
+<main class="main">
+
+  <!-- ===================== 页头 ===================== -->
+  <div class="page-header">
+    <div>
+      <h1>IP · 网段管理</h1>
+      <div class="sub">IPv4 / IPv6 双栈网段台账（CIDR 唯一 · v4 网段创建后自动生成空闲地址 · 全部变更留审计）</div>
+    </div>
+    <button class="btn btn-outline" style="margin-right:8px">⬆ 导入</button>
+    <button class="btn btn-primary">+ 新建网段</button>
+  </div>
+  <div class="anno">
+    <b>设计标注（开发前请阅读）</b>：① 版本徽标 v4=蓝 / v6=紫；② 利用率条三色分段 = 已用(深蓝) / 预留(黄) / 空闲(灰)，悬停显示精确数字，阈值 🟢&lt;60% 🟡60-85% 🔴&gt;85%；③ IPv6 大网段（/64 以上）不展开地址列表，仅前缀登记模式；④ 「地址」按钮跳转地址台账并自动带上网段筛选。
+  </div>
+
+  <!-- ===================== 统计卡 ===================== -->
+  <div class="stat-cards">
+    <div class="stat-card">
+      <div class="label">网段数</div>
+      <div class="value">18 <small>IPv4</small> · 3 <small>IPv6</small></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">总地址容量</div>
+      <div class="value">5,530 <small>IPv4</small> · ≈1.2×10²⁴ <small>IPv6</small></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">已分配（利用率）</div>
+      <div class="value">1,286 <small>23.2%</small></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">本周新增分配</div>
+      <div class="value">12 <small>回收 4</small></div>
+    </div>
+  </div>
+
+  <!-- ===================== 网段列表 ===================== -->
+  <div class="panel">
+    <div class="panel-header">
+      <h4>网段列表</h4>
+      <span class="mut">共 21 个网段</span>
+    </div>
+    <div class="filters">
+      <select><option>全部版本</option><option>IPv4</option><option>IPv6</option></select>
+      <select><option>全部区域</option><option>办公</option><option>IDC</option><option>零信任</option><option>存储</option><option>测试</option><option>DMZ</option></select>
+      <input placeholder="搜索 CIDR / 名称，如 192.168.30.">
+      <span class="fchip">冲突仅看</span>
+      <span class="fchip">利用率 &gt; 85%</span>
+    </div>
+    <table>
+      <tr>
+        <th>CIDR</th><th>版本</th><th>VLAN</th><th>名称</th><th>区域</th><th>网关</th>
+        <th>利用率（已用 / 预留 / 空闲）</th><th>操作</th>
+      </tr>
+      <tr>
+        <td><code>192.168.30.0/24</code></td>
+        <td><span class="badge badge-blue">v4</span></td>
+        <td>30</td>
+        <td>办公接入-A</td>
+        <td><span class="badge badge-default">办公</span></td>
+        <td><code>192.168.30.1</code></td>
+        <td class="util">
+          <div class="util-bar"><span class="used" style="width:62%"></span><span class="rsv" style="width:8%"></span></div>
+          <div class="util-legend">162 / 20 / 71 · 🟡 63%</div>
+        </td>
+        <td class="ops">
+          <button class="link-btn">地址</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn muted">停用</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>192.168.110.0/24</code></td>
+        <td><span class="badge badge-blue">v4</span></td>
+        <td>110</td>
+        <td>管理网-RADIUS</td>
+        <td><span class="badge badge-default">IDC</span></td>
+        <td><code>192.168.110.1</code></td>
+        <td class="util">
+          <div class="util-bar"><span class="used" style="width:38%"></span><span class="rsv" style="width:5%"></span></div>
+          <div class="util-legend">97 / 12 / 144 · 🟢 38%</div>
+        </td>
+        <td class="ops">
+          <button class="link-btn">地址</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn muted">停用</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>10.99.0.0/24</code></td>
+        <td><span class="badge badge-blue">v4</span></td>
+        <td>—</td>
+        <td>零信任 WireGuard</td>
+        <td><span class="badge badge-default">零信任</span></td>
+        <td><code>10.99.0.1</code></td>
+        <td class="util">
+          <div class="util-bar"><span class="used" style="width:6%"></span></div>
+          <div class="util-legend">4 / 0 / 249 · 🟢 2%</div>
+        </td>
+        <td class="ops">
+          <button class="link-btn">地址</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn muted">停用</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>172.18.125.0/24</code></td>
+        <td><span class="badge badge-blue">v4</span></td>
+        <td>125</td>
+        <td>IDC 服务器-125</td>
+        <td><span class="badge badge-default">IDC</span></td>
+        <td><code>172.18.125.1</code></td>
+        <td class="util">
+          <div class="util-bar"><span class="used" style="width:89%"></span><span class="rsv" style="width:3%"></span></div>
+          <div class="util-legend">229 / 8 / 16 · 🔴 89%</div>
+        </td>
+        <td class="ops">
+          <button class="link-btn">地址</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn muted">停用</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>2408:8756::/48</code></td>
+        <td><span class="badge badge-violet">v6</span></td>
+        <td>—</td>
+        <td>新机房 IPv6 前缀</td>
+        <td><span class="badge badge-default">IDC</span></td>
+        <td><code>2408:8756::1</code></td>
+        <td class="util">
+          <div class="util-bar"><span class="used" style="width:2%"></span></div>
+          <div class="util-legend">3 / 0 / 前缀登记模式</div>
+        </td>
+        <td class="ops">
+          <button class="link-btn">地址</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn muted">停用</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>2408:8756:0:30::/64</code></td>
+        <td><span class="badge badge-violet">v6</span></td>
+        <td>30</td>
+        <td>办公接入-A v6</td>
+        <td><span class="badge badge-default">办公</span></td>
+        <td><code>2408:8756:0:30::1</code></td>
+        <td class="util">
+          <div class="util-bar"><span class="used" style="width:4%"></span></div>
+          <div class="util-legend">2 / 1 / 前缀登记模式</div>
+        </td>
+        <td class="ops">
+          <button class="link-btn">地址</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn muted">停用</button>
+        </td>
+      </tr>
+    </table>
+    <div class="pagenum"><span class="on">1</span><span>2</span><span>3</span></div>
+  </div>
+
+  <!-- ===================== 分隔说明 ===================== -->
+  <div class="legend">—— 以下为「地址台账」页（#/ip-addresses）设计稿 ——</div>
+
+  <!-- ===================== 地址台账页头 ===================== -->
+  <div class="page-header" style="margin-top:8px">
+    <div>
+      <h1>IP · 地址台账</h1>
+      <div class="sub">地址分配与回收（分配/释放/预留/冲突标记全留审计 · IPv6 悬停显示完整展开形式）</div>
+    </div>
+    <div>
+      <button class="btn btn-outline" style="margin-right:8px">⬆ 导入</button>
+      <button class="btn btn-outline" style="margin-right:8px">导出 CSV</button>
+      <button class="btn btn-primary">+ 批量分配</button>
+    </div>
+  </div>
+
+  <!-- ===================== 地址表 ===================== -->
+  <div class="panel">
+    <div class="panel-header">
+      <h4>地址明细 <span class="mut">（网段：192.168.110.0/24）</span></h4>
+      <span class="mut">253 个地址 · 已分配 97</span>
+    </div>
+    <div class="filters">
+      <select><option>网段：全部</option><option selected>192.168.110.0/24</option><option>192.168.30.0/24</option><option>2408:8756::/48</option></select>
+      <span class="fchip on">已分配</span>
+      <span class="fchip on">预留</span>
+      <span class="fchip">空闲</span>
+      <span class="fchip">冲突</span>
+      <span class="fchip">禁用</span>
+      <select><option>全部资产类型</option><option>物理机</option><option>VM</option><option>网络设备</option><option>打印机</option><option>其他</option></select>
+      <input placeholder="搜索 IP / 主机名 / MAC / 使用人，如 110.106">
+    </div>
+    <table>
+      <tr>
+        <th>IP 地址</th><th>状态</th><th>主机名</th><th>MAC</th><th>资产</th>
+        <th>使用人 / 部门</th><th>用途</th><th>分配时间</th><th>操作</th>
+      </tr>
+      <tr>
+        <td><code>192.168.110.106</code></td>
+        <td><span class="badge badge-success">已分配</span></td>
+        <td>radius-ca-01</td>
+        <td><code>82:42:e3:4b:1b:b7</code></td>
+        <td>物理机 · NetAgent 后端</td>
+        <td>double / IT 基础设施</td>
+        <td>零信任 CA + RADIUS + nginx</td>
+        <td class="mut">2026-03-12</td>
+        <td class="ops">
+          <button class="link-btn danger">释放</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>192.168.110.200</code></td>
+        <td><span class="badge badge-success">已分配</span></td>
+        <td>radius-master</td>
+        <td><code>08:6e:5c:aa:12:f4</code></td>
+        <td>物理机 · FreeRADIUS master</td>
+        <td>double / IT 基础设施</td>
+        <td>认证主节点</td>
+        <td class="mut">2026-02-28</td>
+        <td class="ops">
+          <button class="link-btn danger">释放</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>192.168.110.112</code></td>
+        <td><span class="badge badge-warning">预留</span></td>
+        <td>most-agent-test</td>
+        <td>—</td>
+        <td>VM · Ubuntu 24.04</td>
+        <td>double / IT 基础设施</td>
+        <td>most_agent 开源项目实测</td>
+        <td class="mut">2026-09-02</td>
+        <td class="ops">
+          <button class="link-btn">分配</button>
+          <button class="link-btn danger">释放</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>192.168.110.137</code></td>
+        <td><span class="badge badge-danger">冲突</span></td>
+        <td>—</td>
+        <td><code>4c:1f:cc:9a:2e:81</code></td>
+        <td>未知 · 疑似私接 AP</td>
+        <td>—</td>
+        <td class="mut">与 192.168.110.137 静态绑定冲突（ARP 检测 09-15）</td>
+        <td class="mut">—</td>
+        <td class="ops">
+          <button class="link-btn">处理</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>192.168.110.140</code></td>
+        <td><span class="badge badge-default">空闲</span></td>
+        <td class="mut">—</td>
+        <td class="mut">—</td>
+        <td class="mut">—</td>
+        <td class="mut">—</td>
+        <td class="mut">—</td>
+        <td class="mut">—</td>
+        <td class="ops">
+          <button class="link-btn">分配</button>
+          <button class="link-btn">预留</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>192.168.110.141</code></td>
+        <td><span class="badge badge-default">空闲</span></td>
+        <td class="mut">—</td>
+        <td class="mut">—</td>
+        <td class="mut">—</td>
+        <td class="mut">—</td>
+        <td class="mut">—</td>
+        <td class="mut">—</td>
+        <td class="ops">
+          <button class="link-btn">分配</button>
+          <button class="link-btn">预留</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>2408:8756:0:30::106</code></td>
+        <td><span class="badge badge-success">已分配</span></td>
+        <td>radius-ca-01</td>
+        <td><code>82:42:e3:4b:1b:b7</code></td>
+        <td>物理机 · 双栈 v4+.106</td>
+        <td>double / IT 基础设施</td>
+        <td>新机房 IPv6 试点</td>
+        <td class="mut">2026-09-10</td>
+        <td class="ops">
+          <button class="link-btn danger">释放</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+    </table>
+    <div class="pagenum"><span class="on">1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>…</span></div>
+  </div>
+
+  <div class="anno">
+    <b>交互标注</b>：① 空闲行整行淡化（— 处文字 #b3bac7）；② 「释放」为危险操作，ConfirmModal 需输入 IP 全文确认（对齐删除备份习惯）；③ 冲突行「处理」弹窗记录对端 MAC / 现象后可转已分配或禁用；④ 「历史」打开该 IP 审计时间线（action + 操作人 + before/after 摘要）；⑤ v6 地址显示缩写形式，<i>title 悬停展示完整展开形式</i>；⑥ 「批量分配」支持多选空闲地址统一填主机名/使用人。
+  </div>
+
+  <!-- ===================== 分隔说明 ===================== -->
+  <div class="legend">—— 以下为「公网资产」页（#/ip-public，v0.2 新增）设计稿 ——</div>
+
+  <!-- ===================== 公网资产页头 ===================== -->
+  <div class="page-header" style="margin-top:8px">
+    <div>
+      <h1>IP · 公网资产</h1>
+      <div class="sub">公网 IPv4/IPv6 地址、NAT 映射与域名备案统一台账（释放有活跃映射的私网地址将被拒绝）</div>
+    </div>
+    <div>
+      <button class="btn btn-outline" style="margin-right:8px">⬆ 导入</button>
+      <button class="btn btn-outline" style="margin-right:8px">导出 CSV</button>
+      <button class="btn btn-primary">+ 新增映射</button>
+    </div>
+  </div>
+
+  <!-- ===================== 公网统计卡 ===================== -->
+  <div class="stat-cards">
+    <div class="stat-card">
+      <div class="label">公网地址数</div>
+      <div class="value">16 <small>IPv4</small> · 1 <small>/64 段</small></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">活跃 NAT 映射</div>
+      <div class="value">23 <small>条</small></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">合约 90 天内到期</div>
+      <div class="value" style="color:#c23c34">2 <small>🔴 需续约</small></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">备案缺失</div>
+      <div class="value" style="color:#c23c34">1 <small>🔴 对外服务无备案</small></div>
+    </div>
+  </div>
+
+  <!-- ===================== 公网地址表 ===================== -->
+  <div class="panel">
+    <div class="panel-header">
+      <h4>公网地址</h4>
+      <span class="mut">共 16 个地址 · 1 个网段</span>
+    </div>
+    <div class="filters">
+      <select><option>全部运营商</option><option>电信</option><option>联通</option><option>移动</option><option>云厂商</option></select>
+      <span class="fchip">在用</span>
+      <span class="fchip on">未启用</span>
+      <span class="fchip on">合约临期</span>
+      <span class="fchip">备案缺失</span>
+      <input placeholder="搜索 IP / 域名 / 备案号，如 58.210.">
+    </div>
+    <table>
+      <tr>
+        <th>公网 IP</th><th>运营商</th><th>线路 / 带宽</th><th>状态</th>
+        <th>关联域名（备案）</th><th>NAT 映射</th><th>合约到期</th><th>操作</th>
+      </tr>
+      <tr>
+        <td><code>58.210.101.66</code></td>
+        <td><span class="badge badge-blue">电信</span></td>
+        <td>苏州电信专线-A · 200M</td>
+        <td><span class="badge badge-success">在用</span></td>
+        <td><span class="badge badge-default">www.greatld.com</span> <span class="mut">苏ICP备xxx号</span></td>
+        <td><b>3</b> <span class="mut">条 ▾</span></td>
+        <td>2027-03-31</td>
+        <td class="ops">
+          <button class="link-btn">映射</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="8" style="background:#f8fafc; padding: 8px 24px;">
+          <div style="font-family: monospace; font-size: 12px; color:#4b5563; line-height: 2;">
+            ↳ <code>58.210.101.66:443</code> (tcp) → <code>192.168.110.106:4433</code> 零信任网关入口 &nbsp;·&nbsp; 2026-03-12 &nbsp;<button class="link-btn">编辑</button><button class="link-btn danger">删除</button><br>
+            ↳ <code>58.210.101.66:8443</code> (tcp) → <code>192.168.110.200:8443</code> RADIUS 管理台 &nbsp;·&nbsp; 2026-02-28 &nbsp;<button class="link-btn">编辑</button><button class="link-btn danger">删除</button><br>
+            ↳ <code>58.210.101.66:25</code> (tcp) → <code>172.18.138.201:25</code> 邮件网关 &nbsp;·&nbsp; 2026-05-06 &nbsp;<button class="link-btn">编辑</button><button class="link-btn danger">删除</button>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><code>58.210.101.67</code></td>
+        <td><span class="badge badge-blue">电信</span></td>
+        <td>苏州电信专线-A · 200M</td>
+        <td><span class="badge badge-success">在用</span></td>
+        <td><span class="badge badge-default">testnet.greatld.com</span> <span class="mut">苏ICP备xxx号</span></td>
+        <td><b>2</b> <span class="mut">条 ▾</span></td>
+        <td>2027-03-31</td>
+        <td class="ops">
+          <button class="link-btn">映射</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>58.210.101.68</code></td>
+        <td><span class="badge badge-blue">电信</span></td>
+        <td>苏州电信专线-A · 200M</td>
+        <td><span class="badge badge-warning">未启用</span></td>
+        <td class="mut">—</td>
+        <td class="mut">0 条</td>
+        <td style="color:#c23c34; font-weight:600">2026-10-20 🔴 34 天</td>
+        <td class="ops">
+          <button class="link-btn">分配</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>2408:8756:0:66::/64</code></td>
+        <td><span class="badge badge-violet">v6</span></td>
+        <td>电信 IPv6 试点 · 1G</td>
+        <td><span class="badge badge-success">在用</span></td>
+        <td><span class="badge badge-default">6.greatld.com</span> <span class="mut">苏ICP备xxx号</span></td>
+        <td><b>1</b> <span class="mut">条 ▾</span></td>
+        <td>2027-03-31</td>
+        <td class="ops">
+          <button class="link-btn">映射</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+      <tr>
+        <td><code>121.40.x.187</code></td>
+        <td><span class="badge badge-default">云厂商</span></td>
+        <td>阿里云 EIP · 按流量</td>
+        <td><span class="badge badge-success">在用</span></td>
+        <td style="color:#c23c34">🔴 无备案（对外 Web）</td>
+        <td><b>1</b> <span class="mut">条 ▾</span></td>
+        <td>按量付费</td>
+        <td class="ops">
+          <button class="link-btn">映射</button>
+          <button class="link-btn">编辑</button>
+          <button class="link-btn">历史</button>
+        </td>
+      </tr>
+    </table>
+    <div class="pagenum"><span class="on">1</span><span>2</span></div>
+  </div>
+
+  <div class="anno">
+    <b>公网页交互标注</b>：① NAT 映射行内展开（点击「N 条 ▾」），映射内私网 IP 可点击跳转地址台账；② 「+ 新增映射」弹窗：公网地址(下拉 scope=public) · 公网端口(0=1:1 全端口，此时协议锁定 any) · 协议 tcp/udp/any · 私网地址(搜索选择，须已在私网台账) · 私网端口 · 备注；③ 合约到期 <b>90 天内红色置顶</b>，统计卡联动；④ 备案缺失 = 在用且用途含对外服务但无备案号；⑤ 删除映射写审计（nat_del），映射删除后对应私网地址方可释放；⑥ v6 公网段支持前缀登记模式，映射可挂网段或段内单地址。
+  </div>
+
+  <!-- ===================== 分隔说明 ===================== -->
+  <div class="legend">—— 以下为「批量导入」弹窗（ImportModal，三页共用组件，v0.3 新增）设计稿 ——</div>
+
+  <div class="panel" style="max-width: 720px;">
+    <div class="panel-header">
+      <h4>⬆ 批量导入 · 地址台账 <span class="mut">（第 ② 步：校验预览）</span></h4>
+      <span class="mut">ip_address_import_20260916.xlsx · 1,024 行</span>
+    </div>
+    <div style="padding: 0 18px 14px;">
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <span class="badge badge-success">🟢 新增 1,008</span>
+        <span class="badge badge-warning">🟡 更新 12</span>
+        <span class="badge badge-danger">🔴 错误 4</span>
+        <span style="flex:1"></span>
+        <button class="btn btn-sm btn-outline">下载模板</button>
+      </div>
+      <table>
+        <tr><th style="width:50px">行号</th><th>IP</th><th>主机名</th><th>使用人</th><th>预览结果</th></tr>
+        <tr><td>2</td><td><code>192.168.110.140</code></td><td>app-server-01</td><td>张三 / 研发</td><td><span class="badge badge-success">新增</span></td></tr>
+        <tr><td>3</td><td><code>192.168.110.106</code></td><td>radius-ca-01</td><td>double / IT 基础设施</td><td><span class="badge badge-warning">更新（已存在，主机名不变用途变更）</span></td></tr>
+        <tr style="background:#fdeceb"><td>17</td><td><code>192.168.31.5</code></td><td>unknown</td><td>—</td><td style="color:#c23c34">🔴 IP 未命中任何已录入网段</td></tr>
+        <tr style="background:#fdeceb"><td>88</td><td><code>192.168.110.abc</code></td><td>typo</td><td>—</td><td style="color:#c23c34">🔴 IP 格式非法</td></tr>
+      </table>
+      <div style="margin-top:12px; display:flex; align-items:center; gap:14px;">
+        <span class="mut">冲突处理：</span>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="mode" checked> 跳过冲突（默认）</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="mode"> 覆盖更新</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="mode"> 严格模式（有错误则全部不入库）</label>
+      </div>
+      <div style="margin-top:14px; display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn btn-outline">← 重新上传</button>
+        <button class="btn btn-primary">确认导入（1,008 新增 + 12 更新）</button>
+      </div>
+      <div class="anno" style="margin-top:14px">
+        <b>导入交互标注</b>：① 第 ③ 步结果页：成功 N / 更新 M / 失败 K + [下载错误明细]（原行+原因）+ 列表自动刷新；② 模板 xlsx 含「填写说明」sheet；③ 网段/地址/NAT 三模板有依赖顺序提示（NAT 需地址已入库）；④ 批次入 ip_import_log 可追溯；⑤ 上传限制 .xlsx/.csv ≤10MB·≤2 万行。
+      </div>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>

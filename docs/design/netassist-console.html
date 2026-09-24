@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetAssist · AI 网络排障助手 — 界面原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#0f62fe; --blue-hover:#0353e9; --blue-ghost:#edf5ff;
+  --green:#24a148; --green-bg:#e8f5eb;
+  --red:#da1e28; --red-bg:#fdeceb;
+  --warn:#b28600; --warn-bg:#fdf6dd; --warn-dot:#f1c21b;
+  --purple:#8a3ffc; --purple-bg:#f2edff;
+  --teal:#007d79; --teal-bg:#e6f5f5;
+  --bg:#f4f4f4; --layer:#ffffff; --layer-2:#f4f4f4;
+  --border:#e0e0e0; --border-strong:#c6c6c6;
+  --text:#161616; --text-2:#525252; --text-3:#8d8d8d;
+  --sidebar:#161616; --sidebar-text:#c6c6c6;
+  --font-sans:'IBM Plex Sans','Noto Sans SC','Microsoft YaHei',sans-serif;
+  --font-mono:'IBM Plex Mono','Consolas',monospace;
+  --sidebar-w:240px; --topbar-h:48px; --tag-r:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+
+/* ── 原型说明条 ── */
+.proto-banner{background:var(--purple);color:#fff;font-size:12px;padding:5px 24px;display:flex;justify-content:space-between;align-items:center}
+.proto-banner b{font-weight:600}
+.proto-banner span{opacity:.85}
+
+/* ── TopBar ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--topbar-h);background:var(--layer);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;z-index:100}
+.brand-mark{width:26px;height:26px;background:var(--blue);color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center}
+.brand-name{font-weight:600;font-size:14px}
+.crumb{color:var(--text-3);font-size:13px;display:flex;gap:6px;align-items:center}
+.crumb b{color:var(--text);font-weight:500}
+.env-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--teal);border:1px solid var(--teal);padding:1px 6px;border-radius:var(--tag-r)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-2)}
+.avatar{width:24px;height:24px;background:var(--blue-ghost);color:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:11px}
+
+/* ── Sidebar ── */
+.sidebar{position:fixed;top:var(--topbar-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--sidebar);padding:16px 0;overflow-y:auto}
+.nav-group{font-size:11px;color:#6f6f6f;padding:0 16px;margin:18px 0 6px;letter-spacing:.08em;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;color:var(--sidebar-text);padding:0 16px;height:40px;font-size:13px;cursor:pointer;border-left:3px solid transparent;text-decoration:none}
+.nav-item:hover{background:#252525;color:#fff}
+.nav-item.active{background:#2f2f2f;color:#fff;border-left-color:var(--blue)}
+.nav-item .ni-ico{width:15px;height:15px;flex:none;opacity:.9}
+.nav-badge{margin-left:auto;font-family:var(--font-mono);font-size:10px;background:var(--blue);color:#fff;padding:1px 6px;border-radius:var(--tag-r)}
+
+/* ── Main ── */
+.main{margin-left:var(--sidebar-w);padding:calc(var(--topbar-h) + 24px) 24px 48px;max-width:1480px}
+
+/* ── 视图 Tabs ── */
+.view-tabs{display:flex;border-bottom:1px solid var(--border-strong);margin-bottom:20px;background:var(--layer);border-top:1px solid var(--border)}
+.vtab{padding:12px 18px;font-size:13px;color:var(--text-2);cursor:pointer;border-bottom:3px solid transparent;user-select:none;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.vtab:hover{color:var(--text);background:var(--layer-2)}
+.vtab.active{color:var(--blue);font-weight:600;border-bottom-color:var(--blue)}
+.vtab .vt-n{font-family:var(--font-mono);font-size:10px;background:var(--bg);color:var(--text-2);padding:1px 5px;border-radius:var(--tag-r);margin-left:6px}
+.vtab.active .vt-n{background:var(--blue-ghost);color:var(--blue)}
+.view{display:none}
+.view.active{display:block;animation:fadein .18s ease}
+@keyframes fadein{from{opacity:.4}to{opacity:1}}
+
+/* ── 通用组件 ── */
+.panel{background:var(--layer);border:1px solid var(--border);margin-bottom:16px}
+.panel-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.panel-title{font-weight:600;font-size:14px}
+.panel-sub{color:var(--text-3);font-size:12px}
+.panel-tools{margin-left:auto;display:flex;gap:8px}
+.panel-body{padding:16px}
+
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:2px 10px;border-radius:var(--tag-r);font-weight:500;white-space:nowrap}
+.badge::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor}
+.b-ok{background:var(--green-bg);color:#0e6027}
+.b-warn{background:var(--warn-bg);color:#8e6f00}
+.b-err{background:var(--red-bg);color:#a2191f}
+.b-info{background:var(--blue-ghost);color:#0043ce}
+.b-mono{background:var(--purple-bg);color:#6929c4}
+.b-gray{background:#e8e8e8;color:var(--text-2)}
+.b-teal{background:var(--teal-bg);color:var(--teal)}
+.badge.plain::before{display:none}
+
+.btn{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;font-size:14px;font-family:inherit;cursor:pointer;border:1px solid transparent;background:var(--blue);color:#fff;border-radius:0}
+.btn:hover{background:var(--blue-hover)}
+.btn.ghost{background:var(--layer);color:var(--text);border-color:var(--border-strong)}
+.btn.ghost:hover{border-color:var(--text-2);background:var(--layer)}
+.btn.danger{background:var(--red)}
+.btn.danger:hover{background:#b81922}
+.btn.sm{height:32px;font-size:13px;padding:0 12px}
+
+table{width:100%;border-collapse:collapse;background:var(--layer)}
+th{text-align:left;font-size:12px;font-weight:600;color:var(--text-2);padding:0 16px;height:40px;border-bottom:1px solid var(--border-strong);background:var(--layer);white-space:nowrap}
+td{padding:0 16px;height:44px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:hover td{background:#fafafa}
+td.num,th.num{text-align:right;font-family:var(--font-mono);font-size:12px}
+td.mono{font-family:var(--font-mono);font-size:12px}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── Stepper（状态机）── */
+.stepper{display:flex;align-items:flex-start;overflow-x:auto;padding:20px 16px 8px}
+.step{display:flex;flex-direction:column;align-items:center;min-width:86px;position:relative}
+.step-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:1px solid var(--border-strong);background:var(--layer);color:var(--text-3);z-index:2}
+.step.done .step-dot{background:var(--blue);border-color:var(--blue);color:#fff}
+.step.cur .step-dot{background:#fff;border:3px solid var(--blue);color:var(--blue)}
+.step-label{font-size:11px;margin-top:6px;color:var(--text-3);white-space:nowrap;font-family:var(--font-mono)}
+.step.done .step-label,.step.cur .step-label{color:var(--text)}
+.step-line{position:absolute;top:12px;left:calc(50% + 14px);width:calc(100% - 28px);height:1px;background:var(--border-strong)}
+.step.done .step-line{background:var(--blue)}
+.step.cur .step-line{background:repeating-linear-gradient(90deg,var(--blue) 0 4px,transparent 4px 8px)}
+
+/* ── 假设卡片 ── */
+.hypo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.hypo{border:1px solid var(--border);padding:12px 14px;background:var(--layer);position:relative}
+.hypo.hit{border:1px solid var(--blue);background:var(--blue-ghost)}
+.hypo-tag{font-family:var(--font-mono);font-size:11px;color:var(--text-3)}
+.hypo.hit .hypo-tag{color:var(--blue);font-weight:600}
+.hypo-name{font-size:13px;font-weight:500;margin:4px 0 8px;min-height:38px}
+.hypo-ev{font-size:11px;color:var(--text-2);line-height:1.6}
+
+/* ── 证据链 Timeline ── */
+.timeline{position:relative;padding-left:26px}
+.timeline::before{content:'';position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:var(--border)}
+.ev-node{position:relative;margin-bottom:2px}
+.ev-node::before{content:'';position:absolute;left:-22px;top:14px;width:10px;height:10px;border-radius:50%;background:var(--blue);border:2px solid var(--layer)}
+.ev-node.fail::before{background:var(--red)}
+.ev-node.denied::before{background:var(--text-3)}
+.ev-head{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--layer);border:1px solid var(--border);cursor:pointer;flex-wrap:wrap}
+.ev-head:hover{border-color:var(--border-strong)}
+.ev-seq{font-family:var(--font-mono);font-size:11px;color:var(--text-3);min-width:28px}
+.ev-tool{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--blue)}
+.ev-args{font-family:var(--font-mono);font-size:11px;color:var(--text-2)}
+.ev-meta{margin-left:auto;display:flex;gap:8px;align-items:center;font-family:var(--font-mono);font-size:11px;color:var(--text-3);white-space:nowrap}
+.ev-body{display:none;background:#f8f8f8;border:1px solid var(--border);border-top:none;padding:12px 14px;font-family:var(--font-mono);font-size:12px;white-space:pre;overflow-x:auto;color:var(--text-2);line-height:1.7}
+.ev-node.open .ev-body{display:block}
+.ev-body .hl{background:var(--red-bg);color:var(--red);font-weight:600}
+.ev-body .hl2{background:var(--green-bg);color:#0e6027;font-weight:600}
+.ev-arrow{margin-left:auto;color:var(--text-3);font-size:11px}
+
+/* ── 详情布局 ── */
+.detail-grid{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start}
+.side-stats{position:sticky;top:calc(var(--topbar-h) + 16px)}
+.stat-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.stat-row:last-child{border-bottom:none}
+.stat-row .k{color:var(--text-2)}
+.stat-row .v{font-family:var(--font-mono);font-weight:600}
+.kv{display:flex;gap:10px;flex-wrap:wrap}
+.kv-item{border:1px solid var(--border);padding:8px 12px;background:var(--layer)}
+.kv-item .k{display:block;font-size:11px;color:var(--text-3);margin-bottom:2px}
+.kv-item .v{font-family:var(--font-mono);font-size:13px;font-weight:600}
+
+/* ── Diff ── */
+.diff{font-family:var(--font-mono);font-size:12.5px;background:#0c0c0c;color:#f4f4f4;overflow-x:auto}
+.diff .dl{padding:2px 16px;white-space:pre;background:#1a1a1a;color:#a8a8a8}
+.diff .da{padding:2px 16px;white-space:pre;background:#0d3d24;color:#8fd6a8}
+.diff .dr{padding:2px 16px;white-space:pre;background:#420d11;color:#ffb3b8}
+.diff .dh{padding:6px 16px;color:#8d8d8d;background:#161616;border-bottom:1px solid #262626}
+.cmd-list{font-family:var(--font-mono);font-size:13px;background:#0c0c0c;color:#f4f4f4}
+.cmd-list .cl{padding:7px 16px;border-bottom:1px solid #1c1c1c}
+.cmd-list .cl::before{content:'$ ';color:#8d8d8d}
+.cmd-list .cl.prompt{color:#78a9ff}
+.cmd-list .cl.prompt::before{content:''}
+
+/* ── 验证矩阵 ── */
+.check-row{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border)}
+.check-row:last-child{border-bottom:none}
+.check-ico{width:22px;height:22px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:1px}
+.check-pass .check-ico{background:var(--green-bg);color:#0e6027}
+.check-fail .check-ico{background:var(--red-bg);color:#a2191f}
+.check-name{font-weight:600;font-size:13px}
+.check-detail{font-family:var(--font-mono);font-size:12px;color:var(--text-2);margin-top:3px;line-height:1.7}
+.conclusion{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--green-bg);border-left:3px solid var(--green);font-weight:600;color:#0e6027}
+.conclusion.bad{background:var(--red-bg);border-left-color:var(--red);color:#a2191f}
+.conclusion.warn{background:var(--warn-bg);border-left-color:var(--warn-dot);color:#8e6f00}
+
+/* ── 模型配置 ── */
+.model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.model-card{background:var(--layer);border:1px solid var(--border);padding:16px;position:relative}
+.model-card.current{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+.model-name{font-weight:600;font-size:15px;margin-bottom:2px}
+.model-endpoint{font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-bottom:10px;word-break:break-all}
+.model-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.ms{border:1px solid var(--border);padding:8px;text-align:center}
+.ms .mv{font-family:var(--font-mono);font-weight:600;font-size:16px}
+.ms .mk{font-size:10px;color:var(--text-3)}
+.cur-flag{position:absolute;top:-1px;right:-1px;background:var(--blue);color:#fff;font-size:11px;padding:3px 10px}
+.form-row{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:center;margin-bottom:14px}
+.form-row label{font-size:13px;color:var(--text-2)}
+.form-row .hint{grid-column:2;font-size:11px;color:var(--text-3);margin-top:-8px}
+input[type=text],select{height:40px;border:none;box-shadow:inset 0 0 0 1px var(--border-strong);background:var(--layer);padding:0 12px;font-family:var(--font-mono);font-size:13px;width:100%;border-radius:0}
+input[type=text]:focus{outline:2px solid var(--blue);outline-offset:-1px;box-shadow:none}
+
+/* ── 审批面板 ── */
+.approve-bar{display:flex;gap:12px;padding:16px;align-items:center;background:var(--warn-bg);border-top:1px solid var(--warn-dot)}
+.risk-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:var(--tag-r)}
+.risk-m{background:var(--warn-bg);color:#8e6f00;border:1px solid var(--warn-dot)}
+.risk-h{background:var(--red-bg);color:#a2191f;border:1px solid var(--red)}
+.risk-l{background:var(--green-bg);color:#0e6027;border:1px solid var(--green)}
+
+.hallu-strip{display:flex;gap:8px;flex-wrap:wrap;padding:10px 16px;background:var(--layer);border-bottom:1px solid var(--border)}
+.hs{font-size:11px;font-family:var(--font-mono);padding:3px 8px;border-radius:var(--tag-r);background:var(--green-bg);color:#0e6027}
+.hs.zero::before{content:'✓ ';font-weight:700}
+
+.mono-note{font-family:var(--font-mono);font-size:11px;color:var(--text-3)}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--text-3);align-items:center;flex-wrap:wrap}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:-1px}
+
+@media (max-width:1200px){.hypo-grid{grid-template-columns:repeat(2,1fr)}.model-grid{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="proto-banner">
+  <div><b>界面原型</b> · NetAssist AI 网络排障助手 · 对应 PRD v1.0（Phase 1 只读 + Phase 2 审批门）</div>
+  <span>数据为演示数据 · 风格：Carbon Design（与 admin-spa 线上一致）</span>
+</div>
+
+<header class="topbar">
+  <div class="brand-mark">N</div>
+  <span class="brand-name">NetAssist</span>
+  <div class="crumb">运维平台 / <b>AI 排障</b> / 任务 #1024</div>
+  <span class="env-tag">PRODUCTION</span>
+  <div class="topbar-right">
+    <span>幻觉检测：<b style="color:var(--green)">0 条</b></span>
+    <span>工具调用：20</span>
+    <div class="avatar">W</div>
+  </div>
+</header>
+
+<aside class="sidebar">
+  <div class="nav-group">网络运维</div>
+  <a class="nav-item"><svg class="ni-ico" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="8" width="3" height="7"/><rect x="6.5" y="4" width="3" height="11"/><rect x="12" y="1" width="3" height="14"/></svg>仪表盘</a>
+  <a class="nav-item active"><svg class="ni-ico" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="2"/><circle cx="2.5" cy="3" r="1.6"/><circle cx="13.5" cy="3" r="1.6"/><circle cx="2.5" cy="13" r="1.6"/><circle cx="13.5" cy="13" r="1.6"/><path d="M3.7 3.9 6.6 7M12.3 3.9 9.4 7M3.7 12.1 6.6 9M12.3 12.1 9.4 9" stroke="currentColor" fill="none" stroke-width="1.2"/></svg>AI 排障<span class="nav-badge">2</span></a>
+  <a class="nav-item"><svg class="ni-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="13" height="13"/><circle cx="5" cy="5" r="1" fill="currentColor"/><circle cx="11" cy="11" r="1" fill="currentColor"/><path d="M5 6v5M6 5h5M10 10v0"/></svg>交换机管理</a>
+  <a class="nav-item"><svg class="ni-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 13 8 2l6 11"/><path d="M5.5 9.5h5"/></svg>VPN 管理</a>
+  <a class="nav-item"><svg class="ni-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="13" height="11"/><path d="M1.5 5.5h13M4 8.5h4M4 10.5h6"/></svg>认证日志</a>
+  <div class="nav-group">AI 与审计</div>
+  <a class="nav-item"><svg class="ni-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 1.5 13 4v4c0 3.2-2.2 5.5-5 6.5C5.2 13.5 3 11.2 3 8V4z"/><path d="M5.8 8l1.6 1.6L10.5 6.5" stroke-width="1.4"/></svg>审批中心<span class="nav-badge">1</span></a>
+  <a class="nav-item"><svg class="ni-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5V8l2.5 1.8"/></svg>审计证据库</a>
+  <a class="nav-item"><svg class="ni-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="13" height="4" rx="0"/><rect x="1.5" y="9.5" width="13" height="4"/></svg>模型配置</a>
+</aside>
+
+<main class="main">
+  <nav class="view-tabs">
+    <button class="vtab active" data-v="list">任务列表<span class="vt-n">05</span></button>
+    <button class="vtab" data-v="detail">看 · 查 — 状态机与证据链</button>
+    <button class="vtab" data-v="approve">修 — 审批门与真实 Diff</button>
+    <button class="vtab" data-v="verify">验 — 再验证矩阵与报告</button>
+    <button class="vtab" data-v="models">模型配置</button>
+  </nav>
+
+  <!-- ═══════════ 视图 1：任务列表 ═══════════ -->
+  <section class="view active" id="view-list">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">AI 排障任务</span>
+        <span class="panel-sub">闭环：看 → 查 → 修 → 验 · 只读工具白名单 · 写操作仅经审批门</span>
+        <div class="panel-tools">
+          <button class="btn ghost sm">导出 CSV</button>
+          <button class="btn sm">＋ 新建排障任务</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>任务</th><th>故障现象</th><th>状态</th><th>根因置信度</th>
+          <th class="num">工具调用</th><th class="num">Token (入/出)</th><th class="num">耗时</th><th>幻觉</th><th>操作</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">#1024</td>
+            <td>研发部门无法访问业务服务器 192.168.30.100，跨交换机 VLAN 通信失败</td>
+            <td><span class="badge b-ok">COMPLETED · verified</span></td>
+            <td><b style="font-family:var(--font-mono)">91%</b></td>
+            <td class="num">20</td><td class="num">56,460 / 3,070</td><td class="num">52s</td>
+            <td><span class="badge b-ok plain">0 条</span></td>
+            <td><a href="#" class="goto" data-v="detail">证据链</a> · <a href="#" class="goto" data-v="verify">报告</a></td>
+          </tr>
+          <tr>
+            <td class="mono">#1023</td>
+            <td>SSID test022 EAP-TLS 认证失败，check-eap-tls 报证书校验拒绝</td>
+            <td><span class="badge b-warn">AWAITING_APPROVAL</span></td>
+            <td><b style="font-family:var(--font-mono)">88%</b></td>
+            <td class="num">14</td><td class="num">41,208 / 2,655</td><td class="num">47s</td>
+            <td><span class="badge b-ok plain">0 条</span></td>
+            <td><a href="#" class="goto" data-v="approve">待审批</a></td>
+          </tr>
+          <tr>
+            <td class="mono">#1022</td>
+            <td>VPN 用户 wangchong 隧道频繁掉线（WireGuard 客户端）</td>
+            <td><span class="badge b-info">ANALYZING</span></td>
+            <td>—</td>
+            <td class="num">7</td><td class="num">18,322 / 940</td><td class="num">进行中</td>
+            <td><span class="badge b-ok plain">0 条</span></td>
+            <td><a href="#" class="goto" data-v="detail">证据链</a></td>
+          </tr>
+          <tr>
+            <td class="mono">#1021</td>
+            <td>核心交换机 CPU 告警，疑似环路</td>
+            <td><span class="badge b-gray">CLOSED · 未复现</span></td>
+            <td>—</td>
+            <td class="num">9</td><td class="num">22,054 / 1,102</td><td class="num">31s</td>
+            <td><span class="badge b-ok plain">0 条</span></td>
+            <td><a href="#">已归档</a></td>
+          </tr>
+          <tr>
+            <td class="mono">#1020</td>
+            <td>2F 会议室终端无法获取 IP（DHCP）</td>
+            <td><span class="badge b-ok">COMPLETED · verified</span></td>
+            <td><b style="font-family:var(--font-mono)">94%</b></td>
+            <td class="num">17</td><td class="num">44,918 / 2,240</td><td class="num">44s</td>
+            <td><span class="badge b-ok plain">0 条</span></td>
+            <td><a href="#">证据链</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="hallu-strip">
+        <span class="hs zero">H1 无证据宣称恢复</span>
+        <span class="hs zero">H2 失败宣称成功</span>
+        <span class="hs zero">H3 引用未执行命令</span>
+        <span class="mono-note" style="margin-left:auto">规则命中即红色告警并写入 ai_task.hallucination_flags</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-body" style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+        <div class="legend">
+          <b style="font-size:12px;color:var(--text-2)">状态图例</b>
+          <span><i style="background:var(--blue)"></i>进行中（PLANNING / TOOL_CALLING / ANALYZING）</span>
+          <span><i style="background:var(--warn-dot)"></i>AWAITING_APPROVAL（等待人工审批）</span>
+          <span><i style="background:var(--green)"></i>COMPLETED · verified=true</span>
+          <span><i style="background:#8d8d8d"></i>CLOSED（未复现 / 被拒绝）</span>
+        </div>
+        <span class="mono-note" style="margin-left:auto">12 态状态机 · 失败必须 REPLAN · 未复现时如实输出「N 个假设全部排除」</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 视图 2：任务详情（看+查）═══════════ -->
+  <section class="view" id="view-detail">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">任务 #1024</span>
+        <span class="panel-sub">「研发部门无法访问业务服务器 192.168.30.100，跨交换机 VLAN 通信失败」</span>
+        <div class="panel-tools">
+          <span class="badge b-ok">COMPLETED · verified=true</span>
+          <button class="btn ghost sm">生成报告</button>
+        </div>
+      </div>
+      <div class="panel-body kv" style="border-bottom:1px solid var(--border)">
+        <div class="kv-item"><span class="k">授权设备范围（scope_devices）</span><span class="v">Core-SW · Acc-SW1 · Acc-SW2（3 台）</span></div>
+        <div class="kv-item"><span class="k">根因</span><span class="v">Core-SW GE0/0/24 Trunk 缺 VLAN 10</span></div>
+        <div class="kv-item"><span class="k">置信度</span><span class="v" style="color:var(--blue)">91%</span></div>
+        <div class="kv-item"><span class="k">REPLAN 次数</span><span class="v">0</span></div>
+      </div>
+      <!-- 12 态步进条 -->
+      <div class="stepper">
+        <div class="step done"><div class="step-dot">✓</div><span class="step-label">UNDERSTAND</span><i class="step-line"></i></div>
+        <div class="step done"><div class="step-dot">✓</div><span class="step-label">PLAN</span><i class="step-line"></i></div>
+        <div class="step done"><div class="step-dot">✓</div><span class="step-label">TOOL×13</span><i class="step-line"></i></div>
+        <div class="step done"><div class="step-dot">✓</div><span class="step-label">ANALYZE</span><i class="step-line"></i></div>
+        <div class="step done"><div class="step-dot">✓</div><span class="step-label">ROOT_CAUSE</span><i class="step-line"></i></div>
+        <div class="step done"><div class="step-dot">✓</div><span class="step-label">APPROVAL</span><i class="step-line"></i></div>
+        <div class="step done"><div class="step-dot">✓</div><span class="step-label">EXECUTE</span><i class="step-line"></i></div>
+        <div class="step cur"><div class="step-dot">●</div><span class="step-label">VERIFY 3/3</span><i class="step-line"></i></div>
+        <div class="step"><div class="step-dot">5</div><span class="step-label">COMPLETED</span><i class="step-line"></i></div>
+        <div class="step"><div class="step-dot">✕</div><span class="step-label">FAILED</span></div>
+      </div>
+      <div class="mono-note" style="padding:0 16px 14px">状态机每步落库；REPLAN 分支（读错误→重新规划）未触发；只读阶段结论强制携带 verified=false + 「需授权执行修复」</div>
+    </div>
+
+    <div class="detail-grid">
+      <div>
+        <!-- 假设卡片 -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">诊断假设</span><span class="panel-sub">模型规划 4 个假设，逐项用证据证实 / 排除</span></div>
+          <div class="panel-body hypo-grid">
+            <div class="hypo">
+              <span class="hypo-tag">H1 · 排除</span>
+              <div class="hypo-name">研发 VLAN 10 未在交换机正确创建</div>
+              <div class="hypo-ev">display vlan → Core-SW / Acc-SW1 均可见 VLAN 10 (eth-trunk, GE0/0/24)，假设不成立</div>
+            </div>
+            <div class="hypo hit">
+              <span class="hypo-tag">H2 · 根因 ✓ 置信 91%</span>
+              <div class="hypo-name">Trunk 链路未放行 VLAN 10</div>
+              <div class="hypo-ev">display port vlan → GE0/0/24 Trunk List = <b>1 20 99</b>，缺 10；研发 VLAN 流量无法跨交换机转发</div>
+            </div>
+            <div class="hypo">
+              <span class="hypo-tag">H3 · 排除</span>
+              <div class="hypo-name">接入端口 VLAN 配置异常</div>
+              <div class="hypo-ev">display port vlan → Acc-SW1 GE0/0/1 = access vlan 10，正常；MAC 表有学习记录</div>
+            </div>
+            <div class="hypo">
+              <span class="hypo-tag">H4 · 排除</span>
+              <div class="hypo-name">网关或路由异常致跨网段不可达</div>
+              <div class="hypo-ev">display ip routing-table / ospf peer → 路由完整、邻居 Full；VLANIF30 网关 ARP 正常</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 证据链 -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">证据链</span>
+            <span class="panel-sub">ai_tool_call 现查渲染 · 点击节点展开设备真实回显 · 无缓存无填充</span>
+            <div class="panel-tools"><button class="btn ghost sm">展开全部</button></div>
+          </div>
+          <div class="panel-body timeline">
+            <div class="ev-node">
+              <div class="ev-head"><span class="ev-seq">#01</span><span class="ev-tool">asset_query</span><span class="ev-args">{scope: ["Core-SW","Acc-SW1","Acc-SW2"]}</span><span class="ev-meta"><span class="badge b-ok plain">SUCCESS</span>214ms</span><span class="ev-arrow">▾</span></div>
+              <div class="ev-body">{
+  "devices": [
+    {"name":"Core-SW","model":"S5735-H","role":"core","mgmt":"192.168.30.254"},
+    {"name":"Acc-SW1","model":"S5735-L","role":"access","mgmt":"192.168.30.251"},
+    {"name":"Acc-SW2","model":"S5735-L","role":"access","mgmt":"192.168.30.252"}
+  ],
+  "backup_latest": "2026-09-23 02:00 (sw_backup #8842)"
+}</div>
+            </div>
+            <div class="ev-node">
+              <div class="ev-head"><span class="ev-seq">#02</span><span class="ev-tool">ping_probe</span><span class="ev-args">{from:"Acc-SW1", dst:"192.168.30.100"}</span><span class="ev-meta"><span class="badge b-err plain">100% 丢包</span>3.2s</span><span class="ev-arrow">▾</span></div>
+              <div class="ev-body">--- 192.168.30.100 ping statistics ---
+5 packet(s) transmitted
+0 packet(s) received
+<span class="hl">100.00% packet loss</span>
+→ 故障复现：跨交换机不可达</div>
+            </div>
+            <div class="ev-node">
+              <div class="ev-head"><span class="ev-seq">#05</span><span class="ev-tool">vlan_query</span><span class="ev-args">{device:"Core-SW"}</span><span class="ev-meta"><span class="badge b-ok plain">SUCCESS</span>418ms</span><span class="ev-arrow">▾</span></div>
+              <div class="ev-body">[Core-SW] display vlan
+The total number of vlans : 4
+UID VLAN Type  Description
+1   common  default
+10  common  RD-Dept        <span class="hl2">✔ VLAN 10 存在（H1 排除）</span>
+20  common  SRV-Dept
+30  common  Server</div>
+            </div>
+            <div class="ev-node open">
+              <div class="ev-head"><span class="ev-seq">#08</span><span class="ev-tool">port_vlan_query</span><span class="ev-args">{device:"Core-SW", port:"GE0/0/24"}</span><span class="ev-meta"><span class="badge b-ok plain">SUCCESS</span>★ 关键证据</span><span class="ev-arrow">▴</span></div>
+              <div class="ev-body">[Core-SW] display port vlan active
+Port                    Type   PVID  Trunk VLAN List
+GE0/0/23                trunk  1     1 10 20 30
+GE0/0/24                trunk  1     <span class="hl">1 20 99   ← 缺少 VLAN 10（根因）</span>
+GE0/0/25                access 20    -
+→ H2 证实：GE0/0/24 为 Core-SW↔Acc-SW1 级联 Trunk，允许列表未放行 VLAN 10</div>
+            </div>
+            <div class="ev-node">
+              <div class="ev-head"><span class="ev-seq">#10</span><span class="ev-tool">mac_query</span><span class="ev-args">{device:"Acc-SW1", vlan:10}</span><span class="ev-meta"><span class="badge b-ok plain">SUCCESS</span>387ms</span><span class="ev-arrow">▾</span></div>
+              <div class="ev-body">[Acc-SW1] display mac-address vlan 10
+MAC Address    VLAN  Learned-From        Type
+5489-98xx-xxxx 10    GE0/0/1             dynamic
+→ 接入侧终端在线、MAC 学习正常（H3 排除）</div>
+            </div>
+            <div class="ev-node denied">
+              <div class="ev-head"><span class="ev-seq">#12</span><span class="ev-tool">device_config_write</span><span class="ev-args">{commands:["port trunk allow-pass vlan 10"]}</span><span class="ev-meta"><span class="badge b-gray plain">🔒 DENIED（模型侧永久）</span></span><span class="ev-arrow">▾</span></div>
+              <div class="ev-body">工具权限：permission=DENIED（注册表硬声明，不进入 function calling 列表）
+执行器二次拦截：任务状态 ≠ APPROVED
+→ 写操作只能走审批门，由人在审批面板放行（见「修」视图）</div>
+            </div>
+            <div class="ev-node">
+              <div class="ev-head"><span class="ev-seq">#13</span><span class="ev-tool">conclude</span><span class="ev-args">{root_cause, proposed_fix}</span><span class="ev-meta"><span class="badge b-info plain">ROOT_CAUSED</span>置信 91%</span><span class="ev-arrow">▾</span></div>
+              <div class="ev-body">根因：Core-SW GE0/0/24 的 Trunk 允许列表为 1 20 99，缺少 VLAN 10，
+研发 VLAN 流量无法跨交换机转发。
+只读结论声明：<span class="hl">verified=false · 业务未恢复 · 需授权执行修复</span>
+提案：interface GigabitEthernet0/0/24 → port trunk allow-pass vlan 10（风险：medium）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧统计 -->
+      <div class="side-stats">
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title" style="font-size:13px">任务统计</span></div>
+          <div class="panel-body">
+            <div class="stat-row"><span class="k">工具调用</span><span class="v">20 次</span></div>
+            <div class="stat-row"><span class="k">只读 / 被拒</span><span class="v">19 / 1</span></div>
+            <div class="stat-row"><span class="k">Token 输入</span><span class="v">56,460</span></div>
+            <div class="stat-row"><span class="k">Token 输出</span><span class="v">3,070</span></div>
+            <div class="stat-row"><span class="k">Token 推理</span><span class="v">1,022</span></div>
+            <div class="stat-row"><span class="k">注入→验证通过</span><span class="v">52s</span></div>
+            <div class="stat-row"><span class="k">REPLAN</span><span class="v" style="color:var(--green)">0</span></div>
+            <div class="stat-row"><span class="k">幻觉标记</span><span class="v" style="color:var(--green)">0 条</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title" style="font-size:13px">工具注册表（节选）</span></div>
+          <div class="panel-body" style="font-family:var(--font-mono);font-size:11.5px;line-height:2">
+            <div>✅ asset_query <span style="color:var(--text-3)">ALLOWED</span></div>
+            <div>✅ device_cli_read <span style="color:var(--text-3)">白名单</span></div>
+            <div>✅ ping_probe <span style="color:var(--text-3)">ALLOWED</span></div>
+            <div>✅ radius_auth_log <span style="color:var(--text-3)">ALLOWED</span></div>
+            <div>✅ vpn_session_query <span style="color:var(--text-3)">ALLOWED</span></div>
+            <div>✅ elk_log_search <span style="color:var(--text-3)">ALLOWED</span></div>
+            <div style="color:var(--red)">🔒 device_config_write <b>DENIED</b></div>
+            <div class="mono-note" style="margin-top:6px">permission 于注册表硬声明 + 执行器二次校验</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 视图 3：审批门（修）═══════════ -->
+  <section class="view" id="view-approve">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">变更 #2 · 待审批</span>
+        <span class="panel-sub">任务 #1024（另一演示：#1023 RADIUS 密钥不一致）· 关联故障签名：trunk</span>
+        <div class="panel-tools"><span class="badge b-warn">AWAITING_APPROVAL</span></div>
+      </div>
+      <div class="panel-body" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:13px">目标设备</span><span class="kv-item"><span class="v">Core-SW（192.168.30.254）</span></span>
+        <span class="risk-pill risk-m">⚠ 风险等级 MEDIUM</span>
+        <span class="mono-note">执行顺序固定：before 快照（sha256）→ system-view 逐行下发 → after 快照 → 真实 Diff · 不自动 save</span>
+      </div>
+      <div class="cmd-list">
+        <div class="cl prompt">system-view</div>
+        <div class="cl prompt">interface GigabitEthernet0/0/24</div>
+        <div class="cl">port trunk allow-pass vlan 10</div>
+      </div>
+      <div class="diff">
+        <div class="dh">预测 Diff（undo + 新配置生成 · 执行后以设备真实 Diff 为准）</div>
+        <div class="dr">- port trunk allow-pass vlan 1 20 99</div>
+        <div class="da">+ port trunk allow-pass vlan 1 10 20 99</div>
+      </div>
+      <div class="approve-bar">
+        <span style="font-weight:600;color:#8e6f00">模型在任何状态下都拿不到写权限 — device_config_write 于注册表 DENIED，唯一写通道为本审批门。批准后自动进入再验证，失败可一键回滚。</span>
+        <span style="flex:1"></span>
+        <button class="btn danger">拒绝</button>
+        <button class="btn">✓ 允许执行</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">执行后 · 真实 unified Diff</span>
+        <span class="panel-sub">快照 #8843 → #8844 · difflib 生成 · 落库 ai_change.real_diff</span>
+        <div class="panel-tools"><span class="badge b-ok">EXECUTED</span></div>
+      </div>
+      <div class="diff">
+        <div class="dh">--- snapshot-8843.cfg   2026-09-23 11:32:01 (sha256: 3f9a…c2e1)</div>
+        <div class="dh">+++ snapshot-8844.cfg   2026-09-23 11:32:09 (sha256: 8b41…77d0)</div>
+        <div class="dl">@@ -1180,7 +1180,7 @@</div>
+        <div class="dl"> interface GigabitEthernet0/0/24</div>
+        <div class="dl">  port link-type trunk</div>
+        <div class="dr">- port trunk allow-pass vlan 1 20 99</div>
+        <div class="da">+ port trunk allow-pass vlan 1 10 20 99</div>
+        <div class="dl">  port trunk pvid vlan 1</div>
+        <div class="dl">#</div>
+      </div>
+      <div class="panel-body" style="display:flex;gap:10px;align-items:center">
+        <button class="btn ghost sm">⤺ 回滚此变更（预置 reverse-undo）</button>
+        <span class="mono-note">审批人：double · 2026-09-23 11:32:04 · 审计不可抵赖（approved_by / executed_at 落库）</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 视图 4：再验证与报告（验）═══════════ -->
+  <section class="view" id="view-verify">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">再验证矩阵</span>
+        <span class="panel-sub">故障签名 trunk → 3 项检查 · 结果回灌模型复核 · 未全过不许宣布完成</span>
+        <div class="panel-tools"><span class="badge b-ok">3 / 3 PASS</span></div>
+      </div>
+      <div class="check-row check-pass">
+        <div class="check-ico">✓</div>
+        <div>
+          <div class="check-name">配置核查 — Trunk 已放行 VLAN 10</div>
+          <div class="check-detail">display port vlan → GE0/0/24 Trunk VLAN List = 1 <b style="color:var(--green)">10</b> 20 99</div>
+        </div>
+      </div>
+      <div class="check-row check-pass">
+        <div class="check-ico">✓</div>
+        <div>
+          <div class="check-name">连通性 — ping 研发终端</div>
+          <div class="check-detail">ping -a 192.168.30.100 192.168.10.51 → 5 发 5 收，0% 丢包，RTT avg 1.2ms</div>
+        </div>
+      </div>
+      <div class="check-row check-pass">
+        <div class="check-ico">✓</div>
+        <div>
+          <div class="check-name">业务恢复 — 业务端口探测</div>
+          <div class="check-detail">TCP 192.168.30.100:8443 → reachable（区分「ICMP 通但端口被 ACL 挡」）</div>
+        </div>
+      </div>
+      <div class="conclusion">✓ 故障处理完成 · 业务已恢复 · verified=true · business_recovered=true · 幻觉 0 条</div>
+      <div class="mono-note" style="padding:10px 16px">任一失败 → 结论只能是「配置已修改但业务未恢复」→ 自动 REPLAN 一次 → 二次仍失败强制 verified=false + 幻觉标记</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">《网络故障处理报告》</span>
+        <span class="panel-sub">全部章节由落库证据现算 — 不由模型自由撰写 · 三格式同源</span>
+        <div class="panel-tools">
+          <button class="btn ghost sm">.md</button>
+          <button class="btn ghost sm">.html</button>
+          <button class="btn sm">生成报告</button>
+        </div>
+      </div>
+      <div class="panel-body" style="font-size:13px;line-height:2.1;color:var(--text-2)">
+        <b style="color:var(--text)">任务 #1024 · 研发部门无法访问 192.168.30.100</b><br>
+        01 任务信息　　02 故障现象　　03 范围与授权<br>
+        04 证据链（20 次调用逐条）　　05 根因（置信 91%）　　06 修复提案<br>
+        07 变更记录（含真实 Diff）　　08 再验证（3/3）　　09 结论<br>
+        10 风险提示（未执行 save · 观察期建议）　　11 附录（Token 统计）<br>
+        <span class="mono-note">输出：reports/网络故障处理报告-1024-20260923-1132.md</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 视图 5：模型配置 ═══════════ -->
+  <section class="view" id="view-models">
+    <div class="model-grid">
+      <div class="model-card current">
+        <div class="cur-flag">当前模型</div>
+        <div class="model-name">火山方舟 · Seed</div>
+        <div class="model-endpoint">ark.cn-beijing.volces.com/api/v3 · ep-2026…-l99ln</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge b-info plain">视觉多模态</span>
+          <span class="badge b-info plain">Function Calling</span>
+        </div>
+        <div class="model-stats">
+          <div class="ms"><div class="mv">12</div><div class="mk">请求</div></div>
+          <div class="ms"><div class="mv">9</div><div class="mk">成功</div></div>
+          <div class="ms"><div class="mv">30.8s</div><div class="mk">均延迟</div></div>
+        </div>
+        <span class="mono-note">API Key：sk-****l99ln（Fernet 加密落库）</span>
+      </div>
+      <div class="model-card">
+        <div class="model-name">本地 vLLM（备用）</div>
+        <div class="model-endpoint">127.0.0.1:8000/v1 · qwen2.5-32b-instruct</div>
+        <div style="display:flex;gap:6px"><span class="badge b-gray plain">Function Calling</span></div>
+        <div class="model-stats">
+          <div class="ms"><div class="mv">36</div><div class="mk">请求</div></div>
+          <div class="ms"><div class="mv">36</div><div class="mk">成功</div></div>
+          <div class="ms"><div class="mv">8.4s</div><div class="mk">均延迟</div></div>
+        </div>
+        <span class="mono-note">离线兜底 · 不支持视觉</span>
+      </div>
+      <div class="model-card">
+        <div class="model-name">＋ 新建配置</div>
+        <div class="model-endpoint">OpenAI Compatible Base URL</div>
+        <div class="form-row"><label>Base URL</label><input type="text" placeholder="https://ark.cn-beijing.volces.com/api/v3"></div>
+        <div class="form-row"><label>Model ID</label><input type="text" placeholder="ep-2026…（接入点 ID，非模型直调 ID，否则 404）"></div>
+        <div class="form-row"><label>API Key</label><input type="text" placeholder="仅写不读 · 前端只回掩码"></div>
+        <div class="mono-note" style="margin:4px 0 10px">客户端默认：超时 120s · 429 时 6s 退避重试 1 次 · 扩展思考默认关</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn ghost sm">测试连接</button>
+          <button class="btn sm">保存</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">未配置守卫</span></div>
+      <div class="panel-body mono-note">无当前模型时，创建排障任务直接返回 <b style="color:var(--red)">409 Model Not Configured</b> 并引导至本页 — 不偷偷调用任何默认模型</div>
+    </div>
+  </section>
+</main>
+
+<script>
+// 视图切换
+function go(v){
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('active',s.id==='view-'+v));
+  window.scrollTo({top:0});
+}
+document.querySelectorAll('.vtab').forEach(t=>t.addEventListener('click',()=>go(t.dataset.v)));
+document.querySelectorAll('.goto').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();go(a.dataset.v);}));
+// 证据链节点展开/收起
+document.querySelectorAll('.ev-head').forEach(h=>h.addEventListener('click',()=>{
+  const n=h.parentElement; n.classList.toggle('open');
+  h.querySelector('.ev-arrow').textContent=n.classList.contains('open')?'▴':'▾';
+}));
+</script>
+</body>
+</html>

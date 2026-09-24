@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运维页面渲染风格模版 · Ops UI Style Template v1.0</title>
+<style>
+/* ═══ 设计 Tokens（与 admin-spa index.css 对齐 + 新增 3 个） ═══ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #1450C8; --green: #2BBD7E; --red: #c23c34; --orange: #E0742A;
+  --dark: #1f2430; --gray: #6b7488; --muted: #8b94a6; --border: #e2e7f0;
+  --bg-light: #fafbfd; --bg-title: #f7f9fc;
+  /* 新增 */
+  --ok: #2BBD7E; --warn: #E0A52A; --crit: #c23c34;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--dark); background: #eef1f6; -webkit-font-smoothing: antialiased;
+}
+.container { display: flex; min-height: 100vh; }
+.sidebar { width: 210px; flex-shrink: 0; background: var(--bg-light); border-right: 1px solid var(--border); padding: 20px 14px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar h3 { font-size: 13px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; margin: 16px 0 8px 4px; }
+.sidebar h3:first-child { margin-top: 0; }
+.sidebar-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 9px; font-size: 13px; cursor: pointer; color: var(--gray); margin-bottom: 2px; transition: all .15s; }
+.sidebar-item:hover { background: #eef2fb; color: var(--blue); }
+.sidebar-item.active { background: #eef2fb; color: var(--blue); font-weight: 600; }
+.sidebar-item .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--ok); }
+.sidebar-user { display: flex; align-items: center; gap: 9px; padding: 10px; border-radius: 10px; background: #fff; border: 1px solid var(--border); margin-top: auto; }
+.sidebar-user .avatar { width: 30px; height: 30px; border-radius: 50%; background: #dfe5ef; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #5b647a; }
+.main { flex: 1; padding: 28px 32px; min-width: 0; max-width: 1400px; margin: 0 auto; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.page-header h1 { font-size: 22px; font-weight: 700; }
+.page-header .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.panel { background: #fff; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 18px; overflow: hidden; }
+.panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--bg-title); border-bottom: 1px solid var(--border); }
+.panel-header h4 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.panel-body { padding: 16px 20px; }
+.panel-header.clickable { cursor: pointer; user-select: none; }
+.arrow { display: inline-block; transition: transform .18s; font-size: 10px; color: var(--muted); }
+.panel.open .arrow { transform: rotate(90deg); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; padding: 10px 14px; background: var(--bg-title); border-bottom: 1px solid var(--border); white-space: nowrap; }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td { padding: 9px 14px; border-bottom: 1px solid #f1f3f8; }
+tr:hover td { background: #f8faff; }
+td code { background: #f0f2f8; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: var(--mono); }
+.badge { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; display: inline-block; white-space: nowrap; }
+.badge-success { background: #e4f7ee; color: #188a5b; }
+.badge-danger { background: #fdeceb; color: var(--red); }
+.badge-default { background: #eef1f6; color: var(--gray); }
+.badge-blue { background: #eef2fb; color: var(--blue); }
+.badge-warning { background: #fff1e0; color: #b45e13; }
+.btn { padding: 7px 16px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-outline { background: #fff; color: var(--blue); border: 1px solid #b9cef1; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.mut { font-size: 12px; color: var(--muted); }
+
+/* ═══ 6.1 KPI 统计卡 + sparkline ═══ */
+.stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.stat-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; transition: transform .15s; }
+.stat-card:hover { transform: translateY(-2px); }
+.stat-card .label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+.stat-card .value { font-size: 28px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.kpi-foot { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 8px; }
+.spark { width: 72px; height: 26px; }
+.trend { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.trend.up { color: #188a5b; } .trend.down { color: var(--red); } .trend.flat { color: var(--muted); }
+
+/* ═══ 6.2 服务状态灯网格 ═══ */
+.health-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.health-cell { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-family: var(--mono); background: var(--bg-light); cursor: default; }
+.health-cell::before { content: ""; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.health-cell.ok::before { background: var(--ok); box-shadow: 0 0 0 3px rgba(43,189,126,.18); }
+.health-cell.warn::before { background: var(--warn); box-shadow: 0 0 0 3px rgba(224,165,42,.18); }
+.health-cell.crit::before { background: var(--crit); box-shadow: 0 0 0 3px rgba(194,60,52,.22); animation: pulse 1.2s infinite; }
+.health-cell.off::before { background: #c6cdd9; }
+.health-cell.crit { border-color: #f0cdca; background: #fdf3f2; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px rgba(194,60,52,.22);} 50% { box-shadow: 0 0 0 6px rgba(194,60,52,.08);} }
+
+/* ═══ 6.3 容量水位条 ═══ */
+.meters { display: flex; flex-direction: column; gap: 14px; }
+.meter-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.meter-head b { font-variant-numeric: tabular-nums; }
+.meter-bar { position: relative; height: 10px; border-radius: 999px; background: #edf0f6; overflow: visible; }
+.meter-bar .fill { display: block; height: 100%; border-radius: 999px; transition: width .4s; }
+.fill.ok { background: var(--ok); } .fill.warn { background: var(--warn); } .fill.crit { background: var(--crit); }
+.meter-bar .thresh { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--gray); opacity: .55; }
+.c-ok { color: #188a5b; } .c-warn { color: var(--warn); } .c-crit { color: var(--crit); }
+.meters-note { font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+/* ═══ 6.5 日志流 / 终端窗口 ═══ */
+.term { border-radius: 12px; overflow: hidden; border: 1px solid #2a3340; box-shadow: 0 8px 24px rgba(15,23,42,.18); }
+.term-bar { display: flex; align-items: center; gap: 7px; padding: 9px 14px; background: #232936; }
+.term-bar i { width: 11px; height: 11px; border-radius: 50%; }
+.term-bar i:nth-child(1) { background: #ff5f57; } .term-bar i:nth-child(2) { background: #febc2e; } .term-bar i:nth-child(3) { background: #28c840; }
+.term-bar span { margin-left: 8px; font-size: 11px; color: #8899aa; font-family: var(--mono); }
+.term-body { background: #0f1419; color: #c8d3e0; font-family: var(--mono); font-size: 12px; line-height: 1.65; padding: 14px 16px; max-height: 240px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+.term-body .t { color: #667788; }
+.term-body .ok { color: #3ecf8e; }
+.term-body .er { color: #ff7b72; }
+.term-body .cmd { color: #6BA6FF; }
+
+/* ═══ 6.6 事件时间线 ═══ */
+.tl { position: relative; padding-left: 4px; }
+.tl-item { position: relative; display: flex; gap: 14px; padding: 0 0 18px 22px; }
+.tl-item::before { content: ""; position: absolute; left: 5px; top: 14px; bottom: -4px; width: 2px; background: var(--border); }
+.tl-item:last-child::before { display: none; }
+.tl-dot { position: absolute; left: 0; top: 4px; width: 12px; height: 12px; border-radius: 50%; border: 2.5px solid #fff; box-shadow: 0 0 0 1px var(--border); }
+.tl-item.ok .tl-dot { background: var(--ok); }
+.tl-item.warn .tl-dot { background: var(--warn); }
+.tl-item.crit .tl-dot { background: var(--crit); }
+.tl-item.info .tl-dot { background: var(--blue); }
+.tl-time { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; padding-top: 1px; }
+.tl-body { font-size: 13px; line-height: 1.55; }
+.tl-body .mut { display: block; }
+
+/* ═══ 6.7 告警横幅 ═══ */
+.banner { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-radius: 12px; margin-bottom: 18px; font-size: 13px; border: 1px solid transparent; }
+.banner b { font-size: 13px; white-space: nowrap; }
+.banner span { flex: 1; color: var(--gray); }
+.banner.crit { background: #fdf3f2; border-color: #f0cdca; color: var(--crit); }
+.banner.warn { background: #fffaf0; border-color: #f3ddb8; color: #b45e13; }
+.banner.info { background: #eef2fb; border-color: #cddefa; color: var(--blue); }
+
+/* ═══ 6.9 空态 / 骨架屏 ═══ */
+.empty-box { text-align: center; padding: 36px 0; }
+.empty-box .ico { font-size: 30px; opacity: .5; margin-bottom: 10px; }
+.empty-box p { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.skel-row { height: 14px; border-radius: 7px; background: linear-gradient(90deg, #eef1f6 25%, #f7f9fc 50%, #eef1f6 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; margin-bottom: 12px; }
+.skel-row:last-child { margin-bottom: 0; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ═══ 6.10 键值描述列表 ═══ */
+.kv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 24px; }
+.kv { display: flex; justify-content: space-between; gap: 12px; padding: 8px 4px; border-bottom: 1px dashed var(--border); font-size: 13px; }
+.kv span { color: var(--muted); white-space: nowrap; }
+.kv b { font-family: var(--mono); font-weight: 600; text-align: right; word-break: break-all; }
+
+/* ═══ 深色模式 ═══ */
+.dark { background: #0f1419; color: #d0d5dd; }
+.dark .sidebar { background: #1a1f28; border-color: #2a3340; }
+.dark .sidebar-item { color: #8899aa; }
+.dark .sidebar-item:hover, .dark .sidebar-item.active { background: #162540; color: #6BA6FF; }
+.dark .sidebar-user { background: #1a1f28; border-color: #2a3340; }
+.dark .panel, .dark .stat-card { background: #1a1f28; border-color: #2a3340; }
+.dark .panel-header { background: #151a24; border-color: #2a3340; }
+.dark th { background: #151a24; color: #667788; border-color: #2a3340; }
+.dark td { border-color: #222a36; }
+.dark tr:hover td { background: #1a2333; }
+.dark td code { background: #222a36; color: #a0b0cc; }
+.dark .btn-outline { background: #1a1f28; border-color: #2a4a7a; }
+.dark .health-cell { background: #151a24; border-color: #2a3340; }
+.dark .health-cell.crit { border-color: #5c2a27; background: #241a1c; }
+.dark .meter-bar { background: #222a36; }
+.dark .tl-dot { border-color: #1a1f28; }
+.dark .tl-item::before { background: #2a3340; }
+.dark .kv { border-color: #2a3340; }
+.dark .skel-row { background: linear-gradient(90deg, #1a1f28 25%, #232b38 50%, #1a1f28 75%); background-size: 200% 100%; }
+.dark .banner.crit { background: #241a1c; border-color: #5c2a27; }
+.dark .banner.warn { background: #241f16; border-color: #5c4a24; }
+.dark .banner.info { background: #16202e; border-color: #24405e; }
+.dark .c-ok { color: #3ecf8e; }
+.dark .badge-success { background: #143428; color: #3ecf8e; }
+.dark .badge-danger { background: #3a1f1e; color: #ff8a80; }
+.dark .badge-blue { background: #162540; color: #6BA6FF; }
+.dark .badge-default { background: #222a36; color: #8899aa; }
+.dark .badge-warning { background: #362a14; color: #ffc766; }
+</style>
+</head>
+<body>
+<div class="container" id="app">
+
+  <!-- 侧边栏（示意） -->
+  <aside class="sidebar">
+    <h3>监控概览</h3>
+    <div class="sidebar-item"><i class="dot"></i>仪表盘</div>
+    <div class="sidebar-item active"><i class="dot"></i>风格模版演示</div>
+    <div class="sidebar-item"><i class="dot"></i>服务状态</div>
+    <h3>网络准入</h3>
+    <div class="sidebar-item"><i class="dot"></i>在线用户</div>
+    <div class="sidebar-item"><i class="dot"></i>认证日志</div>
+    <div class="sidebar-item"><i class="dot"></i>VPN 管理</div>
+    <h3>基础设施</h3>
+    <div class="sidebar-item"><i class="dot"></i>Ceph 集群</div>
+    <div class="sidebar-item"><i class="dot"></i>交换机管理</div>
+    <div class="sidebar-user"><span class="avatar">吴</span><div><div style="font-size:13px;font-weight:600">double</div><div class="mut">基础设施工程师</div></div></div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1>运维页面渲染风格模版</h1>
+        <div class="sub">Ops UI Style Template v1.0 · 10 个组件 · 与 admin-spa 现有风格增量兼容 · PRD: docs/PRD-运维页面渲染风格模版.md</div>
+      </div>
+      <button class="btn btn-outline" onclick="document.body.classList.toggle('dark')">🌓 切换深/浅主题</button>
+    </div>
+
+    <!-- 6.7 告警横幅 -->
+    <div class="banner crit">
+      <b>🔴 2 项异常</b>
+      <span>nginx 最近 1 小时重启 3 次 · s3-2024 使用率 82.5%（接近阈值 85%）</span>
+      <button class="btn btn-sm btn-outline">查看详情</button>
+    </div>
+    <div class="banner warn">
+      <b>🟡 1 项注意</b>
+      <span>mariadb 昨日 03:00 发生 1 次重启（OOM 可疑）</span>
+      <button class="btn btn-sm btn-outline">查看详情</button>
+    </div>
+
+    <!-- 6.1 KPI 统计卡 + sparkline -->
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="label">今日认证</div>
+        <div class="value">12,847</div>
+        <div class="kpi-foot">
+          <svg class="spark" viewBox="0 0 72 26"><polyline points="0,20 12,16 24,18 36,10 48,12 60,6 72,8" fill="none" stroke="var(--ok)" stroke-width="2"/><circle cx="72" cy="8" r="2.5" fill="var(--ok)"/></svg>
+          <span class="trend up">↑ 6.2%</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="label">VPN 在线</div>
+        <div class="value">37</div>
+        <div class="kpi-foot">
+          <svg class="spark" viewBox="0 0 72 26"><polyline points="0,14 12,12 24,16 36,14 48,18 60,16 72,20" fill="none" stroke="var(--crit)" stroke-width="2"/><circle cx="72" cy="20" r="2.5" fill="var(--crit)"/></svg>
+          <span class="trend down">↓ 12.1%</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="label">拒绝率</div>
+        <div class="value">1.8%</div>
+        <div class="kpi-foot">
+          <svg class="spark" viewBox="0 0 72 26"><polyline points="0,12 12,14 24,11 36,13 48,12 60,13 72,12" fill="none" stroke="var(--muted)" stroke-width="2"/><circle cx="72" cy="12" r="2.5" fill="var(--muted)"/></svg>
+          <span class="trend flat">— 持平</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Ceph 总容量</div>
+        <div class="value">1.6 PB</div>
+        <div class="kpi-foot">
+          <svg class="spark" viewBox="0 0 72 26"><polyline points="0,22 12,21 24,19 36,17 48,15 60,12 72,10" fill="none" stroke="var(--warn)" stroke-width="2"/><circle cx="72" cy="10" r="2.5" fill="var(--warn)"/></svg>
+          <span class="trend down">↓ 余量收窄</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.2 服务状态灯 + 6.3 水位条 -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 18px;" class="two-col">
+      <div class="panel">
+        <div class="panel-header"><h4>6.2 服务状态灯网格 <span class="badge badge-default">ops-health</span></h4><span class="mut">title 悬停看详情</span></div>
+        <div class="panel-body">
+          <div class="health-grid">
+            <div class="health-cell ok"   title="运行中 46 天 · PID 2881">radiusd</div>
+            <div class="health-cell ok"   title="运行中 118 天">sssd</div>
+            <div class="health-cell warn" title="昨日 03:00 重启 1 次（OOM 可疑）">mariadb</div>
+            <div class="health-cell crit" title="最近 1 小时重启 3 次">nginx</div>
+            <div class="health-cell ok"   title="隧道正常">wg-quick@wg0</div>
+            <div class="health-cell ok"   title="3/3 节点在线">headscale</div>
+            <div class="health-cell off"  title="数据超过 5 分钟未上报">node-exporter</div>
+            <div class="health-cell ok"   title="队列积压 0">filebeat</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h4>6.3 容量水位条 <span class="badge badge-default">ops-meter</span></h4><span class="mut">阈值线 85%</span></div>
+        <div class="panel-body">
+          <div class="meters">
+            <div class="meter">
+              <div class="meter-head"><span>s3-2026</span><b class="c-ok">48.2%</b></div>
+              <div class="meter-bar"><i class="fill ok" style="width:48.2%"></i><em class="thresh" style="left:85%"></em></div>
+            </div>
+            <div class="meter">
+              <div class="meter-head"><span>s3-2024</span><b class="c-warn">82.5%</b></div>
+              <div class="meter-bar"><i class="fill warn" style="width:82.5%"></i><em class="thresh" style="left:85%"></em></div>
+            </div>
+            <div class="meter">
+              <div class="meter-head"><span>s3-2024-back</span><b class="c-crit">86.9%</b></div>
+              <div class="meter-bar"><i class="fill crit" style="width:86.9%"></i><em class="thresh" style="left:85%"></em></div>
+            </div>
+            <div class="meter">
+              <div class="meter-head"><span>MySQL radius（连接数）</span><b class="c-ok">35.4%</b></div>
+              <div class="meter-bar"><i class="fill ok" style="width:35.4%"></i><em class="thresh" style="left:85%"></em></div>
+            </div>
+          </div>
+          <div class="meters-note">色带规则：&lt;70% 绿 · 70~85% 黄 · &gt;85% 红（对齐 Ceph 近满阈值 85%）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6.4 数据表格 -->
+    <div class="panel open" id="tblPanel">
+      <div class="panel-header clickable" onclick="togglePanel('tblPanel')">
+        <h4><span class="arrow">▶</span>6.4 数据表格规范 <span class="badge badge-default">badge + num + mono 时间</span></h4>
+        <span class="mut">点击标题折叠 / 展开</span>
+      </div>
+      <table>
+        <thead><tr><th>用户名</th><th>来源</th><th class="num">流量 (GB)</th><th>状态</th><th>时间</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><code>double</code></td><td>10.99.0.4</td><td class="num">12,847.62</td><td><span class="badge badge-success">接受</span></td><td style="font-family:var(--mono)">09-22 20:15:33</td><td><button class="btn btn-sm btn-outline">详情</button></td></tr>
+          <tr><td><code>zhangwei</code></td><td>10.99.0.17</td><td class="num">3,204.18</td><td><span class="badge badge-success">接受</span></td><td style="font-family:var(--mono)">09-22 20:14:02</td><td><button class="btn btn-sm btn-outline">详情</button></td></tr>
+          <tr><td><code>unknown-dev</code></td><td>172.18.5.88</td><td class="num">0.00</td><td><span class="badge badge-danger">拒绝</span></td><td style="font-family:var(--mono)">09-22 20:12:47</td><td><button class="btn btn-sm btn-outline">详情</button></td></tr>
+          <tr><td><code>lisi</code></td><td>10.99.0.22</td><td class="num">896.40</td><td><span class="badge badge-warning">超时</span></td><td style="font-family:var(--mono)">09-22 20:10:19</td><td><button class="btn btn-sm btn-outline">详情</button></td></tr>
+          <tr><td><code>wangmazi</code></td><td>10.99.0.9</td><td class="num">15,930.75</td><td><span class="badge badge-default">历史</span></td><td style="font-family:var(--mono)">09-22 19:58:00</td><td><button class="btn btn-sm btn-outline">详情</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap: 18px;" class="two-col">
+      <!-- 6.5 终端窗口 -->
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-header"><h4>6.5 日志流 / 终端窗口 <span class="badge badge-default">ops-term</span></h4><span class="mut">双主题下恒为深色</span></div>
+        <div class="panel-body">
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><span>radiusd -X | tail -f /var/log/radius/radius.log</span></div>
+            <pre class="term-body"><span class="t">Mon Sep 22 20:15:31 2026</span> : Info: Loaded virtual server <span class="cmd">default</span>
+<span class="t">Mon Sep 22 20:15:33 2026</span> : <span class="ok">Auth: (1234) Login OK: [double/&lt;via TLS tunnel&gt;] (from client office-ap port 0 via TLS tunnel)</span>
+<span class="t">Mon Sep 22 20:15:40 2026</span> : <span class="ok">Auth: (1235) Login OK: [zhangwei/&lt;via TLS tunnel&gt;] (from client office-ap port 0 via TLS tunnel)</span>
+<span class="t">Mon Sep 22 20:16:02 2026</span> : <span class="er">Auth: (1236) Login incorrect (EAP-TLS handshake failed): [unknown-dev/] (from client idc-s57 port 22)</span>
+<span class="t">Mon Sep 22 20:16:05 2026</span> : <span class="er">Auth: (1237) Login incorrect (EAP-TLS handshake failed): [unknown-dev/] (from client idc-s57 port 22)</span>
+<span class="t">Mon Sep 22 20:16:08 2026</span> : Info: <span class="cmd">[coa]</span> Disconnect-ACK for session 10.99.0.22 (user lisi, timeout policy)
+<span class="t">Mon Sep 22 20:16:31 2026</span> : <span class="ok">Auth: (1238) Login OK: [double/&lt;via TLS tunnel&gt;] (from client office-ap port 0 via TLS tunnel)</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6.6 时间线 -->
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-header"><h4>6.6 事件时间线 <span class="badge badge-default">ops-timeline</span></h4></div>
+        <div class="panel-body">
+          <div class="tl">
+            <div class="tl-item ok"><i class="tl-dot"></i><div class="tl-time">20:16:31</div><div class="tl-body">double EAP-TLS 认证通过<span class="mut">office-ap · VLAN 81 · tech_profile</span></div></div>
+            <div class="tl-item crit"><i class="tl-dot"></i><div class="tl-time">20:16:08</div><div class="tl-body">unknown-dev 握手失败 ×3，已触发 CoA 断开<span class="mut">idc-s57 · 172.18.5.88</span></div></div>
+            <div class="tl-item info"><i class="tl-dot"></i><div class="tl-time">20:16:05</div><div class="tl-body">lisi 会话超时，下发 Disconnect<span class="mut">10.99.0.22 · 会话 4h 上限</span></div></div>
+            <div class="tl-item warn"><i class="tl-dot"></i><div class="tl-time">19:40:12</div><div class="tl-body">nginx 第 3 次自动重启<span class="mut">upstream radius-admin 连接拒绝</span></div></div>
+            <div class="tl-item ok"><i class="tl-dot"></i><div class="tl-time">18:07:39</div><div class="tl-body">admin-spa 前端发布完成<span class="mut">38/38 文件 MD5 一致 · 版本 20260922-180739</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-top: 18px;" class="three-col">
+      <!-- 6.9 空态 -->
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-header"><h4>6.9 空态 <span class="badge badge-default">ops-empty</span></h4></div>
+        <div class="panel-body">
+          <div class="empty-box">
+            <div class="ico">📭</div>
+            <p>暂无 VPN 连接记录</p>
+            <button class="btn btn-primary btn-sm">前往下载配置</button>
+          </div>
+        </div>
+      </div>
+      <!-- 6.9 骨架屏 -->
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-header"><h4>6.9 骨架屏 <span class="badge badge-default">ops-skel</span></h4></div>
+        <div class="panel-body">
+          <div class="skel-row" style="width:88%"></div>
+          <div class="skel-row" style="width:64%"></div>
+          <div class="skel-row" style="width:76%"></div>
+          <div class="skel-row" style="width:52%"></div>
+        </div>
+      </div>
+      <!-- 6.10 键值列表 -->
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-header"><h4>6.10 键值列表 <span class="badge badge-default">ops-kv</span></h4></div>
+        <div class="panel-body">
+          <div class="kv-grid" style="grid-template-columns:1fr">
+            <div class="kv"><span>设备型号</span><b>S5735-L48T4X</b></div>
+            <div class="kv"><span>管理 IP</span><b>172.18.164.93</b></div>
+            <div class="kv"><span>序列号</span><b>2102351234P0H000019</b></div>
+            <div class="kv"><span>最近备份</span><b>09-22 02:00</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px; background:linear-gradient(135deg,#eef2fb,#f7f9fc)">
+      <div class="panel-body" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap">
+        <div style="font-size:13px">
+          <b>决策入口</b>：PRD 第 10 章 D1~D5（是否采用 / 融合方案 A·B / 注意色 / 终端配色 / 首个落地页面）
+        </div>
+        <div style="display:flex; gap:8px">
+          <button class="btn btn-primary" onclick="alert('已记录：方案A 增量扩展（示意，正式确认请在对话中回复）')">✅ 采用 · 方案 A</button>
+          <button class="btn btn-outline" onclick="alert('请告知部分采用的组件清单')">⚠️ 部分采用</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mut" style="text-align:center; padding: 8px 0 4px">
+      Ops UI Style Template v1.0 · 2026-09-22 · 本页为单文件自包含演示（无外部依赖 · 双主题 · 响应式栅格）
+    </div>
+  </main>
+</div>
+
+<script>
+function togglePanel(id) {
+  if (event.target.closest('button,input,select,a')) return
+  document.getElementById(id).classList.toggle('open')
+}
+// 表格面板默认展开
+document.getElementById('tblPanel').classList.add('open')
+</script>
+</body>
+</html>

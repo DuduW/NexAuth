@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>页面设计稿 — 交换机 · 定时任务</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f5f5f7; font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+         font-size: 13px; color: #1f2430; display: flex; min-height: 100vh; }
+  /* ---------- 侧边栏 ---------- */
+  .sidebar { width: 190px; background: #fff; border-right: 1px solid #e2e7f0;
+             padding: 16px 10px; flex-shrink: 0; }
+  .sidebar .logo { font-size: 15px; font-weight: 700; padding: 4px 10px 12px; display: block; }
+  .sidebar h3 { font-size: 11px; letter-spacing: .08em; color: #8b94a6; text-transform: uppercase;
+                margin: 14px 0 6px 10px; font-weight: 600; }
+  .sitem { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px;
+           color: #4b5563; cursor: pointer; margin-bottom: 2px; }
+  .sitem .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .sitem.active { background: #eef2fb; color: #1450C8; font-weight: 600; }
+  /* ---------- 主区 ---------- */
+  .main { flex: 1; padding: 20px 24px; max-width: 1160px; }
+  .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  h1 { font-size: 20px; font-weight: 700; }
+  .sub { font-size: 12px; color: #8b94a6; margin-top: 4px; }
+  .btn { border: none; border-radius: 9px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
+  .btn-primary { background: #1450C8; color: #fff; }
+  .btn-outline { background: #fff; color: #1450C8; border: 1px solid #b9cef1; }
+  .btn-danger { background: #fff; color: #c23c34; border: 1px solid #f0cdca; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 7px; }
+  /* 统计卡 */
+  .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: #fff; border-radius: 16px; padding: 14px 18px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  .stat-card .label { font-size: 12px; color: #8b94a6; font-weight: 600; text-transform: uppercase; }
+  .stat-card .value { font-size: 26px; font-weight: 700; margin-top: 4px; }
+  .stat-card .value small { font-size: 18px; color: #8b94a6; font-weight: 400; }
+  /* 面板 */
+  .panel { background: #fff; border-radius: 16px; box-shadow: 0 1px 2px rgba(16,24,40,.04);
+           margin-bottom: 16px; overflow: hidden; }
+  .panel-header { display: flex; justify-content: space-between; align-items: center;
+                  padding: 14px 18px 10px; }
+  .panel-header h4 { font-size: 14px; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; font-weight: 600; color: #8b94a6; text-transform: uppercase;
+       padding: 10px 14px; background: #f8fafc; border-bottom: 1px solid #e2e7f0; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f0f2f6; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  code { background: #f1f4f9; border-radius: 5px; padding: 2px 6px; font-size: 12px;
+         font-family: monospace; color: #4b5563; }
+  .mut { font-size: 12px; color: #8b94a6; }
+  .badge { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 600; }
+  .badge-success { background: #e4f7ee; color: #188a5b; }
+  .badge-warning { background: #fff1e0; color: #b45e13; }
+  .badge-danger  { background: #fdeceb; color: #c23c34; }
+  .badge-blue    { background: #eef2fb; color: #1450C8; }
+  .badge-default { background: #eef1f6; color: #6b7488; }
+  .ops button { margin-right: 4px; }
+  /* 设计标注 */
+  .anno { background: #fffbe8; border: 1px dashed #d9b64a; border-radius: 10px;
+          padding: 8px 12px; font-size: 12px; color: #8a6d1a; margin: 10px 0 16px; }
+  .legend { font-size: 12px; color: #8b94a6; margin: 4px 0 20px; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <span class="logo">Radius Admin</span>
+  <h3>首页</h3>
+  <div class="sitem"><span class="dot" style="background:#2BBD7E"></span>仪表盘</div>
+  <h3>交换机管理</h3>
+  <div class="sitem"><span class="dot" style="background:#0EA5E9"></span>设备管理</div>
+  <div class="sitem"><span class="dot" style="background:#7F77DD"></span>备份与还原</div>
+  <div class="sitem"><span class="dot" style="background:#F59E0B"></span>在线分析</div>
+  <div class="sitem active"><span class="dot" style="background:#1450C8"></span>定时任务</div>
+</aside>
+
+<main class="main">
+  <div class="page-header">
+    <div>
+      <h1>交换机 · 定时任务</h1>
+      <div class="sub">定时备份调度（APScheduler，任务创建/修改即时生效，无需重启）</div>
+    </div>
+    <button class="btn btn-primary">＋ 新建任务</button>
+  </div>
+
+  <div class="stat-cards">
+    <div class="stat-card"><div class="label">任务总数</div><div class="value">2</div></div>
+    <div class="stat-card"><div class="label">启用中</div><div class="value">2</div></div>
+    <div class="stat-card"><div class="label">覆盖设备</div><div class="value">3</div></div>
+    <div class="stat-card"><div class="label">下次执行</div><div class="value" style="font-size:18px">2026-09-16 02:00</div></div>
+  </div>
+
+  <div class="anno">📌 设计稿说明：示例数据含 2 个任务；执行记录面板由行内「记录」按钮条件展开。</div>
+
+  <div class="panel">
+    <div class="panel-header"><h4>任务列表</h4></div>
+    <table>
+      <thead><tr>
+        <th>状态</th><th>任务名称</th><th>备份设备</th><th>执行周期</th><th>下次执行</th>
+        <th>保留策略</th><th>最近执行</th><th style="width:250px">操作</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-success">启用</span></td>
+          <td><strong>接入层每日备份</strong><div class="mut">v1.1 交付默认任务</div></td>
+          <td>192.168.91.51</td>
+          <td><code>0 2 * * *</code></td>
+          <td>2026-09-16 02:00</td>
+          <td class="mut">留 30 份 + 每日末份</td>
+          <td><span class="badge badge-success">成功</span><br>
+              <span class="mut">2026-09-15 16:13 · ok=1 fail=0 skip=0</span></td>
+          <td class="ops">
+            <button class="btn btn-primary btn-sm">立即执行</button>
+            <button class="btn btn-outline btn-sm">记录</button>
+            <button class="btn btn-outline btn-sm">编辑</button>
+            <button class="btn btn-outline btn-sm">停用</button>
+            <button class="btn btn-danger btn-sm">删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-success">启用</span></td>
+          <td><strong>IDC 每周全量</strong><div class="mut">周日凌晨执行，覆盖 IDC 分组</div></td>
+          <td>S57-IDC-01、S57-IDC-02</td>
+          <td><code>0 3 * * 0</code></td>
+          <td>2026-09-20 03:00</td>
+          <td class="mut">留 15 份</td>
+          <td><span class="badge badge-warning">部分成功</span><br>
+              <span class="mut">2026-09-13 03:02 · ok=1 fail=1 skip=0</span></td>
+          <td class="ops">
+            <button class="btn btn-primary btn-sm">立即执行</button>
+            <button class="btn btn-outline btn-sm">记录</button>
+            <button class="btn btn-outline btn-sm">编辑</button>
+            <button class="btn btn-outline btn-sm">停用</button>
+            <button class="btn btn-danger btn-sm">删除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h4>执行记录 · 接入层每日备份</h4></div>
+    <table>
+      <thead><tr>
+        <th>开始时间</th><th>触发</th><th>结果</th><th>成功/失败/跳过</th><th>明细</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td>2026-09-15 16:13</td>
+          <td><span class="badge badge-blue">手动</span></td>
+          <td><span class="badge badge-success">成功</span></td>
+          <td>1 / 0 / 0</td>
+          <td><div class="mut" style="white-space:nowrap">✅ 192.168.91.51 · v11</div></td>
+        </tr>
+        <tr>
+          <td>2026-09-15 16:04</td>
+          <td><span class="badge badge-blue">手动</span></td>
+          <td><span class="badge badge-success">成功</span></td>
+          <td>1 / 0 / 0</td>
+          <td><div class="mut" style="white-space:nowrap">✅ 192.168.91.51 · v10</div></td>
+        </tr>
+        <tr>
+          <td>2026-09-14 02:00</td>
+          <td><span class="badge badge-default">定时</span></td>
+          <td><span class="badge badge-success">成功</span></td>
+          <td>1 / 0 / 0</td>
+          <td><div class="mut" style="white-space:nowrap">✅ 192.168.91.51 · v9</div></td>
+        </tr>
+        <tr>
+          <td>2026-09-13 03:02</td>
+          <td><span class="badge badge-default">定时</span></td>
+          <td><span class="badge badge-danger">失败</span></td>
+          <td>0 / 1 / 0</td>
+          <td><div class="mut" style="white-space:nowrap">❌ 192.168.91.51 · auth: 认证失败</div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    新建任务表单：任务名称 * ｜ 备份设备 *（多选卡片）｜ 执行周期 *（默认 0 2 * * *，附预设提示）｜
+    每设备保留份数（默认 30）｜ 每日末份永久保留（开/关）｜ 备注
+  </div>
+</main>
+
+</body>
+</html>

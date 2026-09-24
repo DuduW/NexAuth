@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>零信任 × VPN 整合 — 页面设计稿</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #1450C8; --blue-light: #eef2fb; --green: #2BBD7E; --green-bg: #e4f7ee; --green-dark: #188a5b;
+  --red: #c23c34; --red-bg: #fdeceb; --orange: #E0742A; --orange-bg: #fff1e0;
+  --violet: #8b5cf6; --violet-bg: #f1edfc; --dark: #1f2430; --gray: #6b7488; --muted: #8b94a6;
+  --border: #e2e7f0; --bg: #f5f5f7; --card: #ffffff;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--dark); -webkit-font-smoothing: antialiased; }
+.container { display: flex; min-height: 100vh; }
+
+/* ── Sidebar（对齐 admin-spa 现有样式） ── */
+.sidebar { width: 210px; flex-shrink: 0; background: #fafbfd; border-right: 1px solid var(--border); padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar .brand { font-size: 16px; font-weight: 700; padding: 4px 12px 12px; }
+.sidebar h3 { font-size: 13px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; margin: 16px 0 8px 4px; }
+.sidebar h3:first-of-type { margin-top: 0; }
+.s-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 9px; font-size: 13px; color: var(--gray); margin-bottom: 2px; }
+.s-item .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.s-item.active { background: var(--blue-light); color: var(--blue); font-weight: 600; }
+.s-item.new::after { content: "NEW"; font-size: 9px; font-weight: 700; color: var(--green-dark); background: var(--green-bg); border-radius: 4px; padding: 1px 5px; margin-left: auto; }
+
+/* ── Main ── */
+.main { flex: 1; padding: 28px 32px; min-width: 0; }
+.page-header { margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; }
+.page-header h1 { font-size: 22px; font-weight: 700; }
+.page-header .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 18px; overflow: hidden; }
+.card-h { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: #f7f9fc; border-bottom: 1px solid var(--border); }
+.card-h h4 { font-size: 14px; font-weight: 600; }
+.card-b { padding: 16px 20px; }
+
+/* stat cards */
+.stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 18px; }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+.stat .label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+.stat .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
+.stat .foot { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.badge { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; display: inline-block; }
+.b-green { background: var(--green-bg); color: var(--green-dark); }
+.b-blue { background: var(--blue-light); color: var(--blue); }
+.b-violet { background: var(--violet-bg); color: var(--violet); }
+.b-orange { background: var(--orange-bg); color: #b45e13; }
+.b-red { background: var(--red-bg); color: var(--red); }
+.b-gray { background: #eef1f6; color: var(--gray); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; padding: 10px 14px; background: #f7f9fc; border-bottom: 1px solid var(--border); }
+td { padding: 9px 14px; border-bottom: 1px solid #f1f3f8; }
+tr:hover td { background: #f8faff; }
+
+.btn { padding: 7px 16px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-outline { background: #fff; color: var(--blue); border: 1px solid #b9cef1; }
+.btn-ghost { background: transparent; color: var(--gray); border: none; cursor: pointer; font-size: 12px; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+/* channel compare */
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.chan { border-radius: 16px; border: 1px solid var(--border); padding: 18px 20px; background: var(--card); }
+.chan .head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.chan .icon { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+.chan h5 { font-size: 14px; font-weight: 700; }
+.chan .meta { font-size: 12px; color: var(--muted); }
+.chan .rows { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; font-size: 12px; }
+.chan .rows .k { color: var(--muted); }
+.chan .rows .v { font-weight: 600; }
+.dotled { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.on { background: var(--green); box-shadow: 0 0 0 3px var(--green-bg); }
+.warn { background: var(--orange); box-shadow: 0 0 0 3px var(--orange-bg); }
+
+/* ── policy center 3 columns ── */
+.policy-wrap { display: grid; grid-template-columns: 210px 1fr 250px; gap: 14px; align-items: start; }
+.tree { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 10px; max-height: 560px; overflow-y: auto; }
+.tree .search { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; margin-bottom: 8px; }
+.tree h6 { font-size: 11px; color: var(--muted); text-transform: uppercase; margin: 10px 6px 4px; }
+.tnode { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--gray); cursor: pointer; }
+.tnode:hover { background: #f0f4fb; }
+.tnode.sel { background: var(--blue-light); color: var(--blue); font-weight: 600; }
+.tnode .cnt { margin-left: auto; font-size: 10px; color: var(--muted); background: #eef1f6; border-radius: 8px; padding: 1px 6px; }
+.plist { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.chips { display: inline-flex; gap: 4px; }
+.chip { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); color: var(--muted); background: #fff; }
+.chip.on-both { background: var(--blue-light); color: var(--blue); border-color: #b9cef1; }
+.chip.on-vpn { background: var(--green-bg); color: var(--green-dark); border-color: #b7e4cd; }
+.chip.on-zt { background: var(--violet-bg); color: var(--violet); border-color: #d8ccf7; }
+.respicker { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; }
+.res-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px; border-radius: 8px; font-size: 12px; }
+.res-item:hover { background: #f8faff; }
+.res-item input { margin-top: 2px; }
+.res-item .nm { font-weight: 600; font-size: 12px; }
+.res-item .val { color: var(--muted); font-size: 11px; font-family: ui-monospace, monospace; }
+
+/* user view */
+.u-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.timeline { list-style: none; }
+.timeline li { position: relative; padding: 0 0 16px 22px; font-size: 12px; }
+.timeline li::before { content: ""; position: absolute; left: 5px; top: 4px; width: 8px; height: 8px; border-radius: 50%; }
+.timeline li::after { content: ""; position: absolute; left: 8.5px; top: 16px; bottom: 0; width: 1px; background: var(--border); }
+.timeline li:last-child::after { display: none; }
+.tl-vpn::before { background: var(--blue); }
+.tl-zt::before { background: var(--violet); }
+.timeline .tm { color: var(--muted); font-size: 11px; margin-right: 8px; font-family: ui-monospace, monospace; }
+
+.section-title { font-size: 13px; font-weight: 700; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+.mut { color: var(--muted); font-size: 12px; }
+.mock-note { background: #fffbe8; border: 1px solid #f5e6a8; color: #8a6d1a; border-radius: 10px; padding: 8px 14px; font-size: 12px; margin-bottom: 16px; }
+.pagebar { display: flex; gap: 10px; margin: 16px 0 4px; flex-wrap: wrap; }
+.pagebar a { font-size: 12px; padding: 6px 14px; border-radius: 8px; background: #fff; border: 1px solid var(--border); color: var(--gray); text-decoration: none; }
+.pagebar a.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+.filters { display: flex; align-items: center; gap: 8px; padding: 12px 18px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+.filters select, .filters input { padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ══════════ Sidebar（新增「统一接入」分区，高亮） ══════════ -->
+  <aside class="sidebar">
+    <div class="brand">RADIUS 管理中心</div>
+    <h3>首页</h3>
+    <div class="s-item"><span class="dot" style="background:#2BBD7E"></span>仪表盘</div>
+    <h3>统一接入 <span style="color:var(--green-dark);font-size:10px">NEW</span></h3>
+    <div class="s-item active"><span class="dot" style="background:#1450C8"></span>接入总览<span class="new"></span></div>
+    <div class="s-item"><span class="dot" style="background:#6BA6FF"></span>策略中心<span class="new"></span></div>
+    <div class="s-item"><span class="dot" style="background:#8b5cf6"></span>用户视图<span class="new"></span></div>
+    <div class="s-item"><span class="dot" style="background:#E06A0A"></span>会话管理<span class="new"></span></div>
+    <div class="s-item"><span class="dot" style="background:#d946ef"></span>统一审计<span class="new"></span></div>
+    <h3>用户与认证</h3>
+    <div class="s-item"><span class="dot" style="background:#1450C8"></span>用户列表</div>
+    <div class="s-item"><span class="dot" style="background:#6BA6FF"></span>用户分组</div>
+    <div class="s-item"><span class="dot" style="background:#2BBD7E"></span>TOTP 动态码</div>
+    <h3>VPN 管理</h3>
+    <div class="s-item"><span class="dot" style="background:#188a5b"></span>节点管理</div>
+    <div class="s-item"><span class="dot" style="background:#6BA6FF"></span>权限管理</div>
+    <div class="s-item"><span class="dot" style="background:#E06A0A"></span>连接日志</div>
+    <div class="s-item"><span class="dot" style="background:#1D9E75"></span>访问日志</div>
+    <div class="s-item"><span class="dot" style="background:#E0742A"></span>流量日志</div>
+    <h3>零信任</h3>
+    <div class="s-item"><span class="dot" style="background:#378ADD"></span>接入设备</div>
+    <div class="s-item"><span class="dot" style="background:#8b5cf6"></span>分组管理</div>
+    <div class="s-item"><span class="dot" style="background:#a855f7"></span>ACL 规则</div>
+    <div class="s-item"><span class="dot" style="background:#d946ef"></span>审计日志</div>
+    <h3>网络资产</h3>
+    <div class="s-item"><span class="dot" style="background:#2BBD7E"></span>网段管理</div>
+    <div class="s-item"><span class="dot" style="background:#9B7FDB"></span>地址台账</div>
+    <div class="s-item"><span class="dot" style="background:#E8684A"></span>公网资产</div>
+  </aside>
+
+  <main class="main">
+
+  <!-- ══════════ 页 1：统一接入总览 ══════════ -->
+  <div class="page-header">
+    <div>
+      <h1>统一接入总览</h1>
+      <div class="sub">VPN 与零信任双通道运行状态 · 策略同步健康度 · 一屏掌握</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline">⟳ 刷新</button>
+      <button class="btn btn-primary">→ 前往策略中心</button>
+    </div>
+  </div>
+
+  <div class="mock-note">📐 页面设计稿 · 第 1 页 / 共 4 页（总览 / 策略中心 / 用户视图 / 会话+审计）· 样式严格对齐 admin-spa 现有设计（#f5f5f7 底 + 白卡 + 16px 圆角 + #1450C8 主色）</div>
+
+  <div class="stats">
+    <div class="stat"><div class="label">VPN 在线会话</div><div class="value">3</div><div class="foot">wg0 · UDP 8001</div></div>
+    <div class="stat"><div class="label">ZT 在线设备</div><div class="value">5</div><div class="foot">Mesh 100.64/10</div></div>
+    <div class="stat"><div class="label">策略版本</div><div class="value" style="font-size:18px;padding-top:6px">v20260921.1</div><div class="foot"><span class="dotled on"></span>双通道已同步 · 3s 前</div></div>
+    <div class="stat"><div class="label">今日告警</div><div class="value" style="color:var(--orange)">1</div><div class="foot">ZT 同步重试 1 次成功</div></div>
+    <div class="stat"><div class="label">授权用户</div><div class="value">18</div><div class="foot">含组展开</div></div>
+    <div class="stat"><div class="label">资源总数</div><div class="value">27</div><div class="foot">CIDR 19 · 域名 8</div></div>
+  </div>
+
+  <div class="duo">
+    <div class="chan">
+      <div class="head">
+        <span class="icon" style="background:var(--blue-light)">🛡️</span>
+        <div><h5>WireGuard VPN 通道</h5><div class="meta">传统星型 · 网段级授权</div></div>
+        <span style="margin-left:auto" class="badge b-green"><span class="dotled on"></span>运行中</span>
+      </div>
+      <div class="rows">
+        <span class="k">监听端口</span><span class="v">UDP 8001</span>
+        <span class="k">隧道网段</span><span class="v">10.99.0.0/24</span>
+        <span class="k">注册 Peer</span><span class="v">6</span>
+        <span class="k">今日流量</span><span class="v">1.2 GB</span>
+        <span class="k">最后编译</span><span class="v">16:42:07</span>
+        <span class="k">对账状态</span><span class="v" style="color:var(--green-dark)">✓ 一致</span>
+      </div>
+    </div>
+    <div class="chan">
+      <div class="head">
+        <span class="icon" style="background:var(--violet-bg)">🕸️</span>
+        <div><h5>Tailscale 零信任通道</h5><div class="meta">Mesh 点对点 · 域名/端口级 ACL</div></div>
+        <span style="margin-left:auto" class="badge b-green"><span class="dotled on"></span>策略已同步</span>
+      </div>
+      <div class="rows">
+        <span class="k">控制面</span><span class="v">Headscale :8081</span>
+        <span class="k">Mesh 网段</span><span class="v">100.64.0.0/10</span>
+        <span class="k">注册节点</span><span class="v">9</span>
+        <span class="k">在线率</span><span class="v">5/9 (56%)</span>
+        <span class="k">ACL 规则</span><span class="v">12 条</span>
+        <span class="k">同步延迟</span><span class="v" style="color:var(--green-dark)">3s</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h4>最近会话（全通道）</h4><span class="mut">数据源：v_unified_audit</span></div>
+    <table>
+      <tr><th>时间</th><th>通道</th><th>用户</th><th>来源</th><th>目标 / 动作</th><th>结果</th></tr>
+      <tr><td>17:21:04</td><td><span class="badge b-blue">VPN</span></td><td>double</td><td>192.168.30.100</td><td>connect → main</td><td><span class="badge b-green">allow</span></td></tr>
+      <tr><td>17:20:47</td><td><span class="badge b-violet">ZT</span></td><td>double</td><td>100.64.0.5</td><td>gitlab.corp:443</td><td><span class="badge b-green">allow</span></td></tr>
+      <tr><td>17:18:12</td><td><span class="badge b-violet">ZT</span></td><td>wangchong</td><td>100.64.0.8</td><td>172.18.0.99:22</td><td><span class="badge b-red">deny</span></td></tr>
+      <tr><td>17:15:33</td><td><span class="badge b-blue">VPN</span></td><td>zhaole</td><td>192.168.30.55</td><td>connect → main</td><td><span class="badge b-green">allow</span></td></tr>
+      <tr><td>17:12:09</td><td><span class="badge b-violet">ZT</span></td><td>double</td><td>100.64.0.5</td><td>grafana.corp:3000</td><td><span class="badge b-green">allow</span></td></tr>
+    </table>
+  </div>
+
+  <div class="pagebar">
+    <a href="#p2">下一页：策略中心 →</a>
+  </div>
+
+  <!-- ══════════ 页 2：策略中心（三栏） ══════════ -->
+  <div class="page-header" id="p2" style="margin-top:40px">
+    <div>
+      <h1>策略中心</h1>
+      <div class="sub">主体 → 资源 → 通道 → 动作 · 一处定义，双通道生效（un_policy_binding）</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline">📜 版本历史</button>
+      <button class="btn btn-outline">👁 编译预览</button>
+      <button class="btn btn-primary">⚡ 立即同步</button>
+    </div>
+  </div>
+
+  <div class="mock-note">📐 第 2 页 / 共 4 页 · 左=主体树（组+用户）· 中=策略绑定列表 · 右=资源选择器（复用 vpn_ip_resources）</div>
+
+  <div class="policy-wrap">
+    <!-- 左：主体树 -->
+    <div class="tree">
+      <input class="search" placeholder="🔍 搜索用户 / 组…">
+      <h6>用户组（radusergroup）</h6>
+      <div class="tnode"><span>📁</span>ops <span class="cnt">5 条</span></div>
+      <div class="tnode sel"><span>📁</span>boss <span class="cnt">3 条</span></div>
+      <div class="tnode"><span>📁</span>tech <span class="cnt">4 条</span></div>
+      <div class="tnode"><span>📁</span>staff <span class="cnt">2 条</span></div>
+      <h6>用户（radcheck）</h6>
+      <div class="tnode"><span>👤</span>double <span class="cnt">2 条</span></div>
+      <div class="tnode"><span>👤</span>wangchong <span class="cnt">1 条</span></div>
+      <div class="tnode"><span>👤</span>zhaole <span class="cnt">—</span></div>
+      <div class="tnode"><span>👤</span>zhuxuan <span class="cnt">—</span></div>
+    </div>
+
+    <!-- 中：策略列表 -->
+    <div class="plist">
+      <div class="card-h"><h4>分组 boss 的策略绑定（3 条）</h4><button class="btn btn-primary btn-sm">＋ 新增绑定</button></div>
+      <table>
+        <tr><th>资源</th><th>值</th><th>通道</th><th>动作</th><th>优先级</th><th>状态</th><th></th></tr>
+        <tr>
+          <td><b>IDC 服务器区</b></td><td><code>172.18.0.0/24</code></td>
+          <td><span class="chips"><span class="chip on-both">双通道</span></span></td>
+          <td><span class="badge b-green">allow</span></td><td>100</td>
+          <td><span class="badge b-green">启用</span></td>
+          <td><button class="btn-ghost">编辑</button> <button class="btn-ghost" style="color:var(--red)">删除</button></td>
+        </tr>
+        <tr>
+          <td><b>内网管理系统</b></td><td><code>*.corp.com:443</code></td>
+          <td><span class="chips"><span class="chip">VPN</span><span class="chip on-zt">ZT</span></span></td>
+          <td><span class="badge b-green">allow</span></td><td>100</td>
+          <td><span class="badge b-green">启用</span></td>
+          <td><button class="btn-ghost">编辑</button> <button class="btn-ghost" style="color:var(--red)">删除</button></td>
+        </tr>
+        <tr>
+          <td><b>生产数据库</b></td><td><code>172.18.5.0/24:3306</code></td>
+          <td><span class="chips"><span class="chip on-vpn">VPN</span></span></td>
+          <td><span class="badge b-red">deny</span></td><td>50</td>
+          <td><span class="badge b-gray">停用</span></td>
+          <td><button class="btn-ghost">编辑</button> <button class="btn-ghost" style="color:var(--red)">删除</button></td>
+        </tr>
+      </table>
+      <div style="padding:12px 16px" class="mut">
+        ⚠️ 冲突规则：deny &gt; allow；user 规则 &gt; group 规则；同级按 priority 升序命中即止。
+        通道 chips 点击可切换 both / vpn / zt（单资源可只在一条通道生效）。
+      </div>
+    </div>
+
+    <!-- 右：资源选择器 -->
+    <div class="respicker">
+      <div class="section-title">🗂 资源库 <span class="mut" style="font-weight:400">(复用)</span></div>
+      <div class="res-item"><input type="checkbox" checked><div><div class="nm">IDC 服务器区</div><div class="val">172.18.0.0/24</div></div></div>
+      <div class="res-item"><input type="checkbox" checked><div><div class="nm">内网管理系统</div><div class="val">*.corp.com:443</div></div></div>
+      <div class="res-item"><input type="checkbox"><div><div class="nm">办公网段</div><div class="val">192.168.30.0/24</div></div></div>
+      <div class="res-item"><input type="checkbox"><div><div class="nm">生产数据库</div><div class="val">172.18.5.0/24:3306</div></div></div>
+      <div class="res-item"><input type="checkbox"><div><div class="nm">监控平台</div><div class="val">172.18.0.20:3000</div></div></div>
+      <div style="margin-top:10px"><button class="btn btn-outline btn-sm" style="width:100%">＋ 新建资源</button></div>
+    </div>
+  </div>
+
+  <!-- 编译预览弹窗示意 -->
+  <div class="card" style="margin-top:16px">
+    <div class="card-h"><h4>编译预览弹窗（点击「编译预览」时出现）</h4><span class="mut">确认无误后才会下发</span></div>
+    <div class="card-b" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <div class="section-title" style="color:var(--blue)">▶ VPN 视图（AllowedIPs per user）</div>
+        <pre style="background:#0f1419;color:#c9d4e8;border-radius:10px;padding:12px;font-size:11px;overflow:auto">double:
+  allowed_ips = 172.18.0.0/24, 10.99.0.0/24   ← 隧道网段自动保障
+wangchong (group: ops):
+  allowed_ips = 172.18.0.10/32, 172.18.0.11/32, 10.99.0.0/24</pre>
+      </div>
+      <div>
+        <div class="section-title" style="color:var(--violet)">▶ ZT 视图（Headscale ACL JSON）</div>
+        <pre style="background:#0f1419;color:#d8ccf7;border-radius:10px;padding:12px;font-size:11px;overflow:auto">{ "groups": { "group:boss": ["double@"] },
+  "grants": [{
+      "src": ["group:boss"],
+      "dst": ["172.18.0.0/24:*"],
+      "ip":  ["*"] }] }</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="pagebar"><a href="#p3">下一页：用户视图 →</a></div>
+
+  <!-- ══════════ 页 3：用户接入视图 ══════════ -->
+  <div class="page-header" id="p3" style="margin-top:40px">
+    <div>
+      <h1>用户接入视图 <span class="mut" style="font-size:14px;font-weight:400">/unified/user/double</span></h1>
+      <div class="sub">单用户 360°：身份 · 双通道状态 · 可达资源 · 全链路时间线</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline">⏱ 临时授权</button>
+      <button class="btn btn-danger" style="background:#fff;color:var(--red);border:1px solid #f0cdca">⏹ 全通道下线</button>
+    </div>
+  </div>
+
+  <div class="mock-note">📐 第 3 页 / 共 4 页 · 左上身份卡 · 右上可达资源（按策略实时编译）· 底部跨通道时间线</div>
+
+  <div class="u-grid">
+    <div class="card">
+      <div class="card-h"><h4>身份与通道状态</h4></div>
+      <div class="card-b">
+        <table>
+          <tr><td class="mut" style="width:110px">用户</td><td><b>double</b>（吴大宝）</td></tr>
+          <tr><td class="mut">所属组</td><td><span class="badge b-blue">boss</span> <span class="badge b-blue">ops</span></td></tr>
+          <tr><td class="mut">VPN Peer</td><td><span class="dotled on"></span><b>10.99.0.4</b> · 在线 2h13m · ↑128MB ↓1.1GB</td></tr>
+          <tr><td class="mut">ZT 设备</td><td><span class="dotled on"></span><b>100.64.0.5</b> · Win11-Workstation · 在线</td></tr>
+          <tr><td class="mut">策略命中</td><td>组 boss（3 条）+ 组 ops（5 条）+ 个人（2 条）</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h4>可达资源（策略实时编译）</h4><span class="mut">GET /unified/user/self 同源</span></div>
+      <table>
+        <tr><th>资源</th><th>值</th><th>生效通道</th></tr>
+        <tr><td>IDC 服务器区</td><td><code>172.18.0.0/24</code></td><td><span class="badge b-blue">VPN+ZT</span></td></tr>
+        <tr><td>内网管理系统</td><td><code>*.corp.com:443</code></td><td><span class="badge b-violet">仅 ZT</span></td></tr>
+        <tr><td>监控平台</td><td><code>172.18.0.20:3000</code></td><td><span class="badge b-violet">仅 ZT</span></td></tr>
+        <tr><td>生产数据库</td><td><code>172.18.5.0/24:3306</code></td><td><span class="badge b-red">被 deny 拦截</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h4>跨通道时间线（近 24h）</h4><span class="mut">VPN 连接 / ZT 接入 / 关键 deny 混排</span></div>
+    <div class="card-b">
+      <ul class="timeline">
+        <li class="tl-vpn"><span class="tm">17:21</span><span class="badge b-blue">VPN</span> 拨入 main 节点，分配 10.99.0.4 <span class="mut">(192.168.30.100)</span></li>
+        <li class="tl-zt"><span class="tm">17:20</span><span class="badge b-violet">ZT</span> 访问 gitlab.corp:443 → allow</li>
+        <li class="tl-zt"><span class="tm">16:58</span><span class="badge b-violet">ZT</span> 访问 172.18.5.30:3306 → <b style="color:var(--red)">deny</b>（不在授权）</li>
+        <li class="tl-vpn"><span class="tm">15:02</span><span class="badge b-blue">VPN</span> 断开（会话 41m，↑32MB ↓210MB）</li>
+        <li class="tl-vpn"><span class="tm">14:21</span><span class="badge b-blue">VPN</span> 拨入 main 节点，分配 10.99.0.4</li>
+        <li class="tl-zt"><span class="tm">09:12</span><span class="badge b-violet">ZT</span> 设备 Win11-Workstation 上线（100.64.0.5）</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pagebar"><a href="#p4">下一页：会话管理 + 统一审计 →</a></div>
+
+  <!-- ══════════ 页 4：会话管理 + 统一审计 ══════════ -->
+  <div class="page-header" id="p4" style="margin-top:40px">
+    <div>
+      <h1>会话管理</h1>
+      <div class="sub">全通道实时会话 · 单会话粒度断开</div>
+    </div>
+    <button class="btn btn-outline">⟳ 刷新</button>
+  </div>
+
+  <div class="mock-note">📐 第 4 页 / 共 4 页 · 上=会话管理（FR-4）· 下=统一审计（FR-5，同页签切换）</div>
+
+  <div class="card">
+    <div class="filters">
+      <select><option>全部通道</option><option>VPN</option><option>零信任</option></select>
+      <input placeholder="用户名…">
+      <input type="date">
+      <button class="btn btn-primary btn-sm">查询</button>
+    </div>
+    <table>
+      <tr><th>通道</th><th>用户</th><th>隧道 IP</th><th>来源 IP</th><th>开始时间</th><th>流量 ↑/↓</th><th>状态</th><th>操作</th></tr>
+      <tr><td><span class="badge b-blue">VPN</span></td><td>double</td><td>10.99.0.4</td><td>192.168.30.100</td><td>17:21:04</td><td>128MB / 1.1GB</td><td><span class="badge b-green">在线</span></td><td><button class="btn-ghost" style="color:var(--red)">断开</button></td></tr>
+      <tr><td><span class="badge b-blue">VPN</span></td><td>zhaole</td><td>10.99.0.2</td><td>192.168.30.55</td><td>17:15:33</td><td>12MB / 88MB</td><td><span class="badge b-green">在线</span></td><td><button class="btn-ghost" style="color:var(--red)">断开</button></td></tr>
+      <tr><td><span class="badge b-violet">ZT</span></td><td>double</td><td>100.64.0.5</td><td>192.168.30.100</td><td>09:12:40</td><td>—</td><td><span class="badge b-green">在线</span></td><td><button class="btn-ghost" style="color:var(--red)">下线</button></td></tr>
+      <tr><td><span class="badge b-violet">ZT</span></td><td>zhuxuan</td><td>100.64.0.11</td><td>172.18.3.22</td><td>16:44:02</td><td>—</td><td><span class="badge b-green">在线</span></td><td><button class="btn-ghost" style="color:var(--red)">下线</button></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h4>统一审计（v_unified_audit 联合视图）</h4><span class="mut">通道 / 用户 / 动作 / 时间 / 关键字 组合查询</span></div>
+    <div class="filters">
+      <select><option>全部动作</option><option>allow</option><option>deny</option><option>connect</option><option>traffic</option></select>
+      <input placeholder="目标关键字，如 172.18…">
+      <input type="date"> ~ <input type="date">
+      <button class="btn btn-primary btn-sm">查询</button>
+      <button class="btn btn-outline btn-sm" style="margin-left:auto">⬇ 导出 CSV</button>
+    </div>
+    <table>
+      <tr><th>时间</th><th>通道</th><th>用户</th><th>动作</th><th>目标</th><th>详情</th></tr>
+      <tr><td>17:20:47</td><td><span class="badge b-violet">ZT</span></td><td>double</td><td><span class="badge b-green">allow</span></td><td>gitlab.corp:443</td><td>命中规则 #12（group:boss）</td></tr>
+      <tr><td>17:18:12</td><td><span class="badge b-violet">ZT</span></td><td>wangchong</td><td><span class="badge b-red">deny</span></td><td>172.18.0.99:22</td><td>无匹配 allow 规则</td></tr>
+      <tr><td>17:15:33</td><td><span class="badge b-blue">VPN</span></td><td>zhaole</td><td><span class="badge b-blue">connect</span></td><td>node=main</td><td>allowed_ips=172.18.0.0/24,10.99.0.0/24</td></tr>
+      <tr><td>17:12:09</td><td><span class="badge b-violet">ZT</span></td><td>double</td><td><span class="badge b-green">allow</span></td><td>grafana.corp:3000</td><td>命中规则 #7（group:ops）</td></tr>
+    </table>
+  </div>
+
+  </main>
+</div>
+</body>
+</html>
