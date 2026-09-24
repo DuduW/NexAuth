@@ -24,6 +24,7 @@ node_modules/
 # 敏感：部署包与物料（含证书骨架/种子库/生产配置）
 dist/
 deploy-pkg/payload/
+docs/
 
 # 运维脚本与临时产物（含内网 IP/密码的取证脚本）
 tools/
