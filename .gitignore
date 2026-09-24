@@ -47,3 +47,5 @@ src/frontend/dist/
 !deploy-pkg/nac-platform-deploy.tar.gz
 bin/
 gotest/
+portal_server_final.py
+portal_server_to_fix.py
